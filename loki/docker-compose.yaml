@@ -1,0 +1,129 @@
+version: "3.3"
+
+services:
+  minio:
+    image: minio/minio:RELEASE.2021-01-16T02-19-44Z
+    entrypoint:
+      - sh
+      - -euc
+      - |
+        mkdir -p /data/loki-data && mkdir -p /data/loki-admin && /usr/bin/minio server /data
+    environment:
+      - MINIO_ACCESS_KEY=loki
+      - MINIO_SECRET_KEY=supersecret
+      - MINIO_PROMETHEUS_AUTH_TYPE=public
+      - MINIO_UPDATE=off
+    ports:
+      - 9000
+    volumes:
+      - ./data/minio:/data
+
+  loki1:
+    image: grafana/loki:latest
+    ports:
+      - 3100
+      - 7946
+      - 9095
+    command: -config.file=/config/config.yaml -s3.force-path-style
+    entrypoint:
+      - sh
+      - -euc
+      - |
+        echo -n "waiting for minio to be ready: " >&2
+        until wget -O /dev/null -S http://minio:9000/minio/health/ready 2>&1 | grep "200 OK" > /dev/null 2> /dev/null; do
+          echo -n "." >&2
+          sleep 2
+        done
+        echo " ready" >&2
+
+        exec /usr/bin/loki -config.file=/config/config.yaml -s3.force-path-style
+    volumes:
+      - ./data/loki1:/data:rw
+      - ./config:/config
+    networks:
+      default:
+        aliases:
+          - loki
+
+  loki2:
+    image: grafana/loki:latest
+    ports:
+      - 3100
+      - 7946
+      - 9095
+    command: -config.file=/config/config.yaml -s3.force-path-style
+    entrypoint:
+      - sh
+      - -euc
+      - |
+        echo -n "waiting for minio to be ready: " >&2
+        until wget -O /dev/null -S http://minio:9000/minio/health/ready 2>&1 | grep "200 OK" > /dev/null 2> /dev/null; do
+          echo -n "." >&2
+          sleep 2
+        done
+        echo " ready" >&2
+
+        exec /usr/bin/loki -config.file=/config/config.yaml -s3.force-path-style
+    volumes:
+      - ./data/loki2:/data:rw
+      - ./config:/config
+    networks:
+      default:
+        aliases:
+          - loki
+
+  loki3:
+    image: grafana/loki:latest
+    ports:
+      - 3100
+      - 7946
+      - 9095
+    command: -config.file=/config/config.yaml -s3.force-path-style
+    entrypoint:
+      - sh
+      - -euc
+      - |
+        echo -n "waiting for minio to be ready: " >&2
+        until wget -O /dev/null -S http://minio:9000/minio/health/ready 2>&1 | grep "200 OK" > /dev/null 2> /dev/null; do
+          echo -n "." >&2
+          sleep 2
+        done
+        echo " ready" >&2
+
+        exec /usr/bin/loki -config.file=/config/config.yaml -s3.force-path-style
+    volumes:
+      - ./data/loki3:/data:rw
+      - ./config:/config
+    networks:
+      default:
+        aliases:
+          - loki
+
+  nginx:
+    image: nginx:latest
+    volumes:
+      - ./config:/etc/nginx:ro
+    depends_on:
+      - loki1
+      - loki2
+      - loki3
+    ports:
+      - "3101:3101"
+    networks:
+      default:
+        aliases:
+          - gateway
+
+  promtail:
+    image: grafana/promtail:2.3.0
+    volumes:
+      - /var/log:/var/log
+      - ./config:/config
+    command: -config.file=/config/promtail.yaml
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./data/grafana:/var/lib/grafana:rw
