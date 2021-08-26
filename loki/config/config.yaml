@@ -1,3 +1,5 @@
+target: "query-frontend,querier,ingester,distributor,table-manager,ruler"
+
 server:
   http_listen_port: 3100
 
