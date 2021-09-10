@@ -25,9 +25,8 @@ docker-compose -f "${SCRIPT_DIR}"/docker-compose.yml build distributor
 # cleanup sources
 rm -Rf "${SRC_DEST}"
 
-
 set +e
-op list items 2>&1 > /dev/null                                                                                                                                                                                                                             [11:11:32]
+op list items 2>&1 > /dev/null 
 if [[ $? -ne 0 ]]; then
   eval "$(op signin my)"
 fi
