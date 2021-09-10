@@ -19,7 +19,7 @@ services:
       - ./data/minio:/data
 
   loki1:
-    image: grafana/loki:latest
+    image: grafana/loki:4218-internal-querier-6c5c12c-WIP
     ports:
       - 3100
       - 7946
@@ -46,7 +46,7 @@ services:
           - loki
 
   loki2:
-    image: grafana/loki:latest
+    image: grafana/loki:4218-internal-querier-6c5c12c-WIP
     ports:
       - 3100
       - 7946
@@ -73,7 +73,7 @@ services:
           - loki
 
   loki3:
-    image: grafana/loki:latest
+    image: grafana/loki:4218-internal-querier-6c5c12c-WIP
     ports:
       - 3100
       - 7946
