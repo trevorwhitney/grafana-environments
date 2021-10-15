@@ -1,24 +1,13 @@
-target: all
+auth_enabled: false
 
 server:
   http_listen_port: 3100
   log_level: debug
-  http_server_read_timeout: 300s
-  http_server_write_timeout: 300s
-  grpc_server_min_time_between_pings: 10s
-  grpc_server_ping_without_stream_allowed: true
-
-ingester:
-  lifecycler:
-    ring:
-      kvstore:
-        store: memberlist
 
 memberlist:
   join_members:
-    - loki1:7946
-    - loki2:7946
-    - loki3:7946
+    - read:7946
+    - write:7946
 
 schema_config:
   configs:
@@ -52,7 +41,20 @@ ruler:
   ring:
     kvstore:
       store: inmemory
+  enable_api: true
 
 compactor:
-  working_directory: /data/compactor1
+  working_directory: /data/compactor
   shared_store: s3
+
+limits_config:
+  ingestion_burst_size_mb: 200
+  ingestion_rate_mb: 150
+
+ingester:
+  wal:
+    enabled: true
+    dir: /data/ingester/wal
+  lifecycler:
+    final_sleep: 0s
+  max_transfer_retries: 0 # Chunk transfers disabled
