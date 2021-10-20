@@ -19,9 +19,9 @@ now="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 project="${1}"; shift
 component="${1}"; shift
 if [[ "$#" -eq 0 ]]; then
-  query="{compose_project=\"$project\", compose_service=\"$component\"}"
+  query="{compose_project=\"$project\", compose_service=\"$component\", container_name=~\".*_1\"}"
 else
-  query="{compose_project=\"$project\", compose_service=\"$component\"} ${@}"
+  query="{compose_project=\"$project\", compose_service=\"$component\", container_name=~\".*_1\"} ${@}"
 fi
 
 echo "Query: $query"
@@ -29,6 +29,7 @@ echo "Query: $query"
 logcli query \
   --tail \
   --quiet \
+  --no-labels \
   --addr="https://${logs_hostname}" \
   --username="${logs_user}" \
   --password="${logs_token}" \

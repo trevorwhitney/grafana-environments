@@ -1,4 +1,4 @@
-version: '3.4'
+version: "3.4"
 services:
   consul:
     logging: &logging
@@ -7,7 +7,7 @@ services:
         loki-url: "${LOGS_URL}"
         loki-retries: "1"
     image: consul
-    command: [ "agent", "-dev" ,"-client=0.0.0.0", "-log-level=info" ]
+    command: ["agent", "-dev", "-client=0.0.0.0", "-log-level=info"]
     ports:
       - 8500:8500
 
@@ -23,7 +23,7 @@ services:
     ports:
       - 9000:9000
     volumes:
-      - .data-minio:/data:delegated
+      - ./.data/minio:/data:delegated
 
   memcached:
     logging:
@@ -42,13 +42,17 @@ services:
     logging:
       <<: *logging
     build:
-      context:    .
+      context: .
       dockerfile: dev.dockerfile
     image: loki
-    command: ["sh", "-c", "sleep 3 && exec ./dlv exec ./loki --listen=:18001 --headless=true --api-version=2 --accept-multiclient --continue -- -config.file=./config/loki.yaml -target=distributor -server.http-listen-port=8001 -server.grpc-listen-port=9001"]
+    command:
+      [
+        "sh",
+        "-c",
+        "sleep 3 && exec ./dlv exec ./loki --listen=:18001 --headless=true --api-version=2 --accept-multiclient --continue -- -config.file=./config/loki.yaml -target=distributor",
+      ]
     depends_on:
-      - ingester-1
-      - ingester-2
+      - ingester
       - consul
     environment:
       - JAEGER_AGENT_HOST=jaeger
@@ -57,67 +61,67 @@ services:
       - JAEGER_SAMPLER_TYPE=const
       - JAEGER_SAMPLER_PARAM=1
     ports:
-      - 8001:8001
-      - 18001:18001
+      - 3100
+      - 9095
+      - 18001
     volumes:
       - ./config:/loki/config
+    networks:
+      default:
+        aliases:
+          - loki
 
-  ingester-1:
+  ingester:
     logging:
       <<: *logging
     build:
-      context:    .
+      context: .
       dockerfile: dev.dockerfile
     image: loki
-    command: ["sh", "-c", "sleep 3 && exec ./dlv exec ./loki --listen=:18002 --headless=true --api-version=2 --accept-multiclient --continue -- -config.file=./config/loki.yaml -target=ingester -server.http-listen-port=8002 -server.grpc-listen-port=9002"]
+    command:
+      [
+        "sh",
+        "-c",
+        "sleep 3 && exec ./dlv exec ./loki --listen=:18001 --headless=true --api-version=2 --accept-multiclient --continue -- -config.file=./config/loki.yaml -target=ingester",
+      ]
     depends_on:
       - consul
       - minio
+    deploy:
+      mode: replicated
+      replicas: 2
     environment:
       - JAEGER_AGENT_HOST=jaeger
       - JAEGER_AGENT_PORT=6831
-      - JAEGER_TAGS=app=ingester-1
+      - JAEGER_TAGS=app=ingester
       - JAEGER_SAMPLER_TYPE=const
       - JAEGER_SAMPLER_PARAM=1
     ports:
-      - 8002:8002
-      - 18002:18002
+      - 3100
+      - 9095
+      - 18001
     volumes:
       - ./config:/loki/config
-      - .data-ingester-1:/data:delegated
-
-  ingester-2:
-    logging:
-      <<: *logging
-    build:
-      context:    .
-      dockerfile: dev.dockerfile
-    image: loki
-    command: ["sh", "-c", "sleep 3 && exec ./dlv exec ./loki --listen=:18003 --headless=true --api-version=2 --accept-multiclient --continue -- -config.file=./config/loki.yaml -target=ingester -server.http-listen-port=8003 -server.grpc-listen-port=9003"]
-    depends_on:
-      - consul
-      - minio
-    environment:
-      - JAEGER_AGENT_HOST=jaeger
-      - JAEGER_AGENT_PORT=6831
-      - JAEGER_TAGS=app=ingester-2
-      - JAEGER_SAMPLER_TYPE=const
-      - JAEGER_SAMPLER_PARAM=1
-    ports:
-      - 8003:8003
-      - 18003:18003
-    volumes:
-      - ./config:/loki/config
-      - .data-ingester-2:/data:delegated
+      - ./.data/ingester:/data:delegated
+    networks:
+      default:
+        aliases:
+          - loki
 
   querier:
     logging:
       <<: *logging
     build:
-      context:    .
+      context: .
       dockerfile: dev.dockerfile
     image: loki
-    command: ["sh", "-c", "sleep 3 && exec ./dlv exec ./loki --listen=:18004 --headless=true --api-version=2 --accept-multiclient --continue -- -config.file=./config/loki.yaml -target=querier -server.http-listen-port=8004 -server.grpc-listen-port=9004 -querier.scheduler-address=query-scheduler:9009"]
+    command:
+      [
+        "sh",
+        "-c",
+        # "sleep 3 && exec ./dlv exec ./loki --listen=:18001 --headless=true --api-version=2 --accept-multiclient --continue -- -config.file=./config/loki.yaml -target=querier -querier.scheduler-address=query-scheduler:9095",
+        "./loki -config.file=./config/loki.yaml -target=querier -querier.scheduler-address=query-scheduler:9095",
+      ]
     depends_on:
       - consul
       - minio
@@ -129,21 +133,34 @@ services:
       - JAEGER_TAGS=app=querier
       - JAEGER_SAMPLER_TYPE=const
       - JAEGER_SAMPLER_PARAM=1
+    deploy:
+      mode: replicated
+      replicas: 2
     ports:
-      - 8004:8004
-      - 18004:18004
+      - 3100
+      - 9095
+      - 18001
     volumes:
       - ./config:/loki/config
-      - .data-querier:/data:delegated
+      - ./.data/querier:/data:delegated
+    networks:
+      default:
+        aliases:
+          - loki
 
   index-gateway:
     logging:
       <<: *logging
     build:
-      context:    .
+      context: .
       dockerfile: dev.dockerfile
     image: loki
-    command: ["sh", "-c", "sleep 3 && exec ./dlv exec ./loki --listen=:18008 --headless=true --api-version=2 --accept-multiclient --continue -- -config.file=./config/loki.yaml -target=index-gateway -server.http-listen-port=8008 -server.grpc-listen-port=9008 -boltdb.shipper.query-ready-num-days=30"]
+    command:
+      [
+        "sh",
+        "-c",
+        "sleep 3 && exec ./dlv exec ./loki --listen=:18001 --headless=true --api-version=2 --accept-multiclient --continue -- -config.file=./config/loki.yaml -target=index-gateway -boltdb.shipper.query-ready-num-days=30",
+      ]
     depends_on:
       - consul
       - minio
@@ -154,19 +171,29 @@ services:
       - JAEGER_SAMPLER_TYPE=const
       - JAEGER_SAMPLER_PARAM=1
     ports:
-      - 8008:8008
-      - 18008:18008
+      - 3100
+      - 9095
+      - 18001
     volumes:
       - ./config:/loki/config
+    networks:
+      default:
+        aliases:
+          - loki
 
   compactor:
     logging:
       <<: *logging
     build:
-      context:    .
+      context: .
       dockerfile: dev.dockerfile
     image: loki
-    command: ["sh", "-c", "sleep 3 && exec ./dlv exec ./loki --listen=:18006 --headless=true --api-version=2 --accept-multiclient --continue -- -config.file=./config/loki.yaml -target=compactor -server.http-listen-port=8006 -server.grpc-listen-port=9006"]
+    command:
+      [
+        "sh",
+        "-c",
+        "sleep 3 && exec ./dlv exec ./loki --listen=:18001 --headless=true --api-version=2 --accept-multiclient --continue -- -config.file=./config/loki.yaml -target=compactor -server.http-listen-port=8006 -server.grpc-listen-port=9006",
+      ]
     depends_on:
       - consul
       - minio
@@ -177,20 +204,31 @@ services:
       - JAEGER_SAMPLER_TYPE=const
       - JAEGER_SAMPLER_PARAM=1
     ports:
-      - 8006:8006
-      - 18006:18006
+      - 3100
+      - 9095
+      - 18001
     volumes:
       - ./config:/loki/config
-      - .data-compactor:/data:delegated
+      - ./.data/compactor:/data:delegated
+    networks:
+      default:
+        aliases:
+          - loki
 
   query-frontend:
     logging:
       <<: *logging
     build:
-      context:    .
+      context: .
       dockerfile: dev.dockerfile
     image: loki
-    command: ["sh", "-c", "sleep 3 && exec ./dlv exec ./loki --listen=:18007 --headless=true --api-version=2 --accept-multiclient --continue -- -config.file=./config/loki.yaml -target=query-frontend -server.http-listen-port=8007 -server.grpc-listen-port=9007 -frontend.scheduler-address=query-scheduler:9009 -log.level=debug"]
+    command:
+      [
+        "sh",
+        "-c",
+        # "sleep 3 && exec ./dlv exec ./loki --listen=:18001 --headless=true --api-version=2 --accept-multiclient --continue -- -config.file=./config/loki.yaml -target=query-frontend -frontend.scheduler-address=query-scheduler:9095",
+        "./loki -config.file=./config/loki.yaml -target=query-frontend -frontend.scheduler-address=query-scheduler:9095",
+      ]
     depends_on:
       - consul
       - minio
@@ -202,19 +240,29 @@ services:
       - JAEGER_SAMPLER_TYPE=const
       - JAEGER_SAMPLER_PARAM=1
     ports:
-      - 8007:8007
-      - 18007:18007
+      - 3100
+      - 9095
+      - 18001
     volumes:
       - ./config:/loki/config
+    networks:
+      default:
+        aliases:
+          - loki
 
   query-scheduler:
     logging:
       <<: *logging
     build:
-      context:    .
+      context: .
       dockerfile: dev.dockerfile
     image: loki
-    command: ["sh", "-c", "sleep 3 && exec ./dlv exec ./loki --listen=:18009 --headless=true --api-version=2 --accept-multiclient --continue -- -config.file=./config/loki.yaml -target=query-scheduler -server.http-listen-port=8009 -server.grpc-listen-port=9009 -log.level=debug"]
+    command:
+      [
+        "sh",
+        "-c",
+        "sleep 3 && exec ./dlv exec ./loki --listen=:18001 --headless=true --api-version=2 --accept-multiclient --continue -- -config.file=./config/loki.yaml -target=query-scheduler",
+      ]
     depends_on:
       - consul
       - minio
@@ -225,10 +273,15 @@ services:
       - JAEGER_SAMPLER_TYPE=const
       - JAEGER_SAMPLER_PARAM=1
     ports:
-      - 8009:8009
-      - 18009:18009
+      - 3100
+      - 9095
+      - 18001
     volumes:
       - ./config:/loki/config
+    networks:
+      default:
+        aliases:
+          - loki
 
   grafana:
     logging:
@@ -244,13 +297,13 @@ services:
     volumes:
       - ./config/datasource.yaml:/etc/config/grafana/provisioning/datasources/ds.yaml
 
-  log-gen:
-    logging:
-      <<: *logging
-    image: mingrammer/flog
-    command: ["-f", "json", "-l", "-s", "1s"]
-    depends_on:
-      - distributor
+  # log-gen:
+  #   logging:
+  #     <<: *logging
+  #   image: mingrammer/flog
+  #   command: ["-f", "json", "-l", "-s", "1s"]
+  #   depends_on:
+  #     - distributor
 
   promtail:
     logging:
@@ -260,3 +313,5 @@ services:
       - /var/log:/var/log
       - ./config:/config
     command: -config.file=/config/promtail.yaml
+    depends_on:
+      - distributor
