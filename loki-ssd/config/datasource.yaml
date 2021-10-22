@@ -3,8 +3,12 @@ datasources:
   - name: Jaeger
     type: jaeger
     access: proxy
-    url: http://jaeger:16686 
+    url: http://jaeger:16686
   - name: Loki
     type: loki
     access: proxy
-    url: http://read:3100
+    url: http://gateway:3101/read
+    jsonData:
+      httpHeaderName1: "X-Scope-OrgID"
+    secureJsonData:
+      httpHeaderValue1: "twhitney"

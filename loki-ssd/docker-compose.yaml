@@ -1,29 +1,12 @@
 version: "3.4"
 services:
-  minio:
+# --- start loki section ---
+  read:
     logging: &logging
       driver: loki-compose
       options:
         loki-url: "${LOGS_URL}"
         loki-retries: "1"
-    image: minio/minio:RELEASE.2021-01-16T02-19-44Z
-    entrypoint:
-      - sh
-      - -euc
-      - |
-        mkdir -p /data/loki-data && mkdir -p /data/loki-admin && /usr/bin/minio server /data
-    environment:
-      - MINIO_ACCESS_KEY=loki
-      - MINIO_SECRET_KEY=supersecret
-      - MINIO_PROMETHEUS_AUTH_TYPE=public
-      - MINIO_UPDATE=off
-    ports:
-      - 9000
-    volumes:
-      - ./.data/minio:/data
-  read:
-    logging:
-      <<: *logging
     build:
       context: .
       dockerfile: dev.dockerfile
@@ -33,7 +16,7 @@ services:
       - 7946
       - 9095
       - 18001
-    deploy:
+    deploy: &replicated
       mode: replicated
       replicas: 2
     environment:
@@ -58,7 +41,7 @@ services:
     volumes:
       - ./.data/read:/data:rw
       - ./config:/config
-    networks:
+    networks: &loki-dns
       default:
         aliases:
           - loki
@@ -73,8 +56,7 @@ services:
       - 9095
       - 18002
     deploy:
-      mode: replicated
-      replicas: 2
+      <<: *replicated
     environment:
       - JAEGER_AGENT_HOST=jaeger
       - JAEGER_AGENT_PORT=6831
@@ -98,9 +80,7 @@ services:
       - ./.data/write:/data:rw
       - ./config:/config
     networks:
-      default:
-        aliases:
-          - loki
+      <<: *loki-dns
 
   compactor:
     logging:
@@ -134,9 +114,40 @@ services:
       - ./.data/compactor:/data:rw
       - ./config:/config
     networks:
-      default:
-        aliases:
-          - loki
+      <<: *loki-dns
+
+  gateway:
+    logging:
+      <<: *logging
+    image: nginx:latest
+    volumes:
+      - ./config:/etc/nginx:ro
+    depends_on:
+      - read
+      - write
+    ports:
+      - "3101:3101"
+
+# --- end loki section ---
+
+  minio:
+    logging:
+      <<: *logging
+    image: minio/minio:RELEASE.2021-01-16T02-19-44Z
+    entrypoint:
+      - sh
+      - -euc
+      - |
+        mkdir -p /data/loki-data && mkdir -p /data/loki-admin && /usr/bin/minio server /data
+    environment:
+      - MINIO_ACCESS_KEY=loki
+      - MINIO_SECRET_KEY=supersecret
+      - MINIO_PROMETHEUS_AUTH_TYPE=public
+      - MINIO_UPDATE=off
+    ports:
+      - 9000
+    volumes:
+      - ./.data/minio:/data
 
   jaeger:
     logging:
@@ -145,15 +156,6 @@ services:
     ports:
       - 16686:16686
       - "14268"
-
-  promtail:
-    logging:
-      <<: *logging
-    image: grafana/promtail:2.3.0
-    volumes:
-      - /var/log:/var/log
-      - ./config:/config
-    command: -config.file=/config/promtail.yaml
 
   grafana:
     logging:
@@ -166,3 +168,15 @@ services:
     volumes:
       - ./.data/grafana:/var/lib/grafana:rw
       - ./config/datasource.yaml:/etc/config/grafana/provisioning/datasources/ds.yaml
+
+  log-gen:
+    logging:
+      driver: loki-compose
+      options:
+        loki-url: "http://localhost:3101/write/loki/api/v1/push"
+        loki-retries: "1"
+        loki-tenant-id: "twhitney"
+    image: mingrammer/flog
+    command: ["-f", "json", "-l", "-s", "5s"]
+    depends_on:
+      - gateway

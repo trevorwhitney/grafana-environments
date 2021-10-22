@@ -1,24 +1,22 @@
-auth_enabled: false
-
 server:
   http_listen_port: 3100
   log_level: debug
 
 memberlist:
   join_members:
-    - read:7946
-    - write:7946
+    - loki:7946
 
 schema_config:
   configs:
     - from: 2021-08-01
       store: boltdb-shipper
-      object_store: aws
+      object_store: s3
       schema: v11
       index:
         prefix: index_
         period: 24h
 
+#TODO: use "current" schema config for storage config and compactor
 storage_config:
   boltdb_shipper:
     active_index_directory: /data/boltdb-shipper-active
@@ -31,6 +29,7 @@ storage_config:
     access_key_id: loki
     secret_access_key: supersecret
 
+# Default to object storage if provided
 ruler:
   storage:
     type: local
@@ -38,23 +37,25 @@ ruler:
       directory: /data/rules
   rule_path: /data/rules-temp
   alertmanager_url: http://localhost:9093
+  # Default to memberlist when meberlist provided
   ring:
     kvstore:
       store: inmemory
+  # default this to true
   enable_api: true
 
+# goes away once we use current schema config
 compactor:
   working_directory: /data/compactor
   shared_store: s3
 
-limits_config:
-  ingestion_burst_size_mb: 200
-  ingestion_rate_mb: 150
-
 ingester:
   wal:
+    # on by default
     enabled: true
     dir: /data/ingester/wal
   lifecycler:
+    # default this to true
     final_sleep: 0s
+  #default this to 0
   max_transfer_retries: 0 # Chunk transfers disabled
