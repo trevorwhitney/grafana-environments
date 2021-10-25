@@ -1,11 +1,9 @@
 server:
   http_listen_port: 3100
   log_level: debug
-
 memberlist:
   join_members:
     - loki:7946
-
 schema_config:
   configs:
     - from: 2021-08-01
@@ -15,47 +13,31 @@ schema_config:
       index:
         prefix: index_
         period: 24h
-
-#TODO: use "current" schema config for storage config and compactor
-storage_config:
-  boltdb_shipper:
-    active_index_directory: /data/boltdb-shipper-active
-    cache_location: /data/boltdb-shipper-cache
-    shared_store: s3
-  aws:
-    endpoint: minio:9000
-    insecure: true
-    bucketnames: loki-data
-    access_key_id: loki
-    secret_access_key: supersecret
-
-# Default to object storage if provided
+common:
+  path_prefix: /data
+  storage:
+    s3:
+      endpoint: minio:9000
+      insecure: true
+      bucketnames: loki-data
+      access_key_id: loki
+      secret_access_key: supersecret
+      s3forcepathstyle: true
 ruler:
   storage:
-    type: local
-    local:
-      directory: /data/rules
-  rule_path: /data/rules-temp
-  alertmanager_url: http://localhost:9093
-  # Default to memberlist when meberlist provided
-  ring:
-    kvstore:
-      store: inmemory
-  # default this to true
-  enable_api: true
+    s3:
+      bucketnames: loki-ruler
 
-# goes away once we use current schema config
-compactor:
-  working_directory: /data/compactor
-  shared_store: s3
+#TODO: use "current" schema config for storage config and compactor
+# storage_config:
+#   boltdb_shipper:
+#     active_index_directory: /data/boltdb-shipper-active
+#     cache_location: /data/boltdb-shipper-cache
+#     shared_store: s3
+#   aws:
+#     endpoint: minio:9000
+#     insecure: true
+#     bucketnames: loki-data
+#     access_key_id: loki
+#     secret_access_key: supersecret
 
-ingester:
-  wal:
-    # on by default
-    enabled: true
-    dir: /data/ingester/wal
-  lifecycler:
-    # default this to true
-    final_sleep: 0s
-  #default this to 0
-  max_transfer_retries: 0 # Chunk transfers disabled

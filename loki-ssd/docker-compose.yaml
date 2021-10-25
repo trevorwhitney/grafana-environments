@@ -138,7 +138,7 @@ services:
       - sh
       - -euc
       - |
-        mkdir -p /data/loki-data && mkdir -p /data/loki-admin && /usr/bin/minio server /data
+        mkdir -p /data/loki-data && mkdir -p /data/loki-admin && mkdir -p /data/loki-ruler && /usr/bin/minio server /data
     environment:
       - MINIO_ACCESS_KEY=loki
       - MINIO_SECRET_KEY=supersecret
@@ -166,7 +166,6 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      - ./.data/grafana:/var/lib/grafana:rw
       - ./config/datasource.yaml:/etc/config/grafana/provisioning/datasources/ds.yaml
 
   log-gen:
