@@ -1,0 +1,159 @@
+auth:
+  type: enterprise
+
+target: all
+
+license:
+  path: /config/license.jwt
+
+instrumentation:
+  enabled: true
+  distributor_client:
+    address: "dns:///enterprise-metrics:9095"
+
+limits:
+  ingestion_rate_strategy: "local"
+  ingestion_burst_size: 350000
+  ingestion_rate: 350000
+  max_global_series_per_metric: 300000
+  max_global_series_per_user: 300000
+  max_series_per_metric: 0
+  max_series_per_user: 0
+  max_series_per_query: 100000
+
+runtime_config:
+  file: /config/runtime-config.yaml
+
+admin_client:
+  storage:
+    s3:
+      endpoint: minio:9000
+      bucket_name: admin
+      access_key_id: enterprise-metrics
+      secret_access_key: supersecret
+      insecure: true
+    type: s3
+
+ruler:
+  alertmanager_url: http://alertmanager/alertmanager
+  enable_alertmanager_v2: true
+  rule_path: "/tmp/rules"
+  storage:
+    type: s3
+    s3:
+      endpoint: minio:9000
+      access_key_id: enterprise-metrics
+      secret_access_key: supersecret
+      bucketnames: "enterprise-metrics-ruler"
+      insecure: true
+      s3forcepathstyle: true
+  poll_interval: 2s
+  enable_sharding: true
+  enable_api: true
+  ring:
+    kvstore:
+      store: memberlist
+  remote_write:
+    enabled: true
+    wal_dir: /wal/ruler
+    min_wal_time: 1m
+    max_wal_time: 5m
+    wal_truncate_frequency: 1m
+
+distributor:
+  shard_by_all_labels: true
+  pool:
+    health_check_ingesters: true
+
+usage_reporting:
+  collect_interval: 1m
+  report_interval: 10m
+
+ingester_client:
+  grpc_client_config:
+    # Configure the client to allow messages up to 100MB.
+    max_recv_msg_size: 104857600
+    max_send_msg_size: 104857600
+    grpc_compression: gzip
+
+frontend_worker:
+  frontend_address: enterprise-metrics:9095
+  match_max_concurrent: true
+
+memberlist:
+  abort_if_cluster_join_fails: false
+  bind_port: 7946
+  join_members:
+    - enterprise-metrics:7946
+
+ingester:
+  max_transfer_retries: 1
+
+  lifecycler:
+    # We want to start immediately.
+    join_after: 0
+    final_sleep: 0s
+    num_tokens: 512
+
+    ring:
+      kvstore:
+        store: memberlist
+      replication_factor: 1
+
+blocks_storage:
+  backend: s3
+  tsdb:
+    block_ranges_period: ["1m"]
+    retention_period: 5m
+    ship_interval: 1m
+  bucket_store:
+    sync_interval: 1m
+  s3:
+    endpoint: minio:9000
+    bucket_name: enterprise-metrics-tsdb
+    access_key_id: enterprise-metrics
+    secret_access_key: supersecret
+    insecure: true
+
+storage:
+  engine: blocks
+
+alertmanager:
+  external_url: http://alertmanager/alertmanager
+  enable_api: true
+  fallback_config_file: /etc/enterprise-metrics/alertmanager.yaml
+  storage:
+    type: s3
+    s3:
+      endpoint: minio:9000
+      access_key_id: enterprise-metrics
+      secret_access_key: supersecret
+      bucketnames: "enterprise-metrics-alertmanager"
+      insecure: true
+      s3forcepathstyle: true
+
+compactor:
+  block_ranges: [2m, 4m, 8m]
+  compaction_interval: 1m
+  compaction_concurrency: 2
+  data_dir: "/tmp/cortex-compactor"
+  cleanup_interval: 1m
+  tenant_cleanup_delay: 1m
+  sharding_enabled: true
+  sharding_strategy: time-sharding
+  sharding_ring:
+    kvstore:
+      store: memberlist
+
+gateway:
+  proxy:
+    default:
+      url: "http://enterprise-metrics:3100"
+    distributor:
+      url: "dns:///enterprise-metrics:9095"
+    alertmanager:
+      url: "http://alertmanager:3100/alertmanager"
+
+server:
+  http_listen_port: 3100
+  log_level: debug

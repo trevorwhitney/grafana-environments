@@ -1,13 +1,12 @@
 #!/usr/bin/env bash
 
+set -e
+
 address="https://logs-prod-us-central1.grafana.net"
 
-set +e
+# make sure we're logged into 1password
 op list items 2>&1 > /dev/null
-if [[ $? -ne 0 ]]; then
-  eval "$(op signin my)"
-fi
-set -e
+
 grafana_com_logs=$(op get item grafana-com-logs | jq '.details.sections | .[].fields')
 logs_hostname=$(echo "$grafana_com_logs" | jq -r '.[] | select(.t == "hostname") | .v')
 logs_user=$(echo "$grafana_com_logs" | jq -r '.[] | select(.t == "username") | .v')

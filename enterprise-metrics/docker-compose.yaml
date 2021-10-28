@@ -1,0 +1,342 @@
+version: "3.4"
+volumes:
+  bootstrap: {}
+services:
+# --- start loki section ---
+  enterprise-metrics:
+    logging: &logging
+      driver: loki-compose
+      options:
+        loki-url: "${LOGS_URL}"
+        loki-retries: "1"
+    build:
+      context: .
+      dockerfile: dev.dockerfile
+    image: enterprise-metrics
+    ports:
+      - 3100
+      - 7946
+      - 9095
+      - 18001
+    deploy: &replicated
+      mode: replicated
+      replicas: 3
+    environment:
+      - JAEGER_AGENT_HOST=jaeger
+      - JAEGER_AGENT_PORT=6831
+      - JAEGER_TAGS=app=enterprise-metrics
+      - JAEGER_SAMPLER_TYPE=const
+      - JAEGER_SAMPLER_PARAM=1
+    command:
+      - sh
+      - -euc
+      - |
+        echo -n "waiting for minio to be ready: " >&2
+        until wget -O /dev/null -S http://minio:9000/minio/health/ready 2>&1 | grep "200 OK" > /dev/null 2> /dev/null; do
+          echo -n "." >&2
+          sleep 2
+        done
+        echo " ready" >&2
+
+        exec ./dlv exec ./enterprise-metrics --listen=:18001 --headless=true --api-version=2 --accept-multiclient --continue -- \
+          -config.file=/config/enterprise-metrics-config.yaml -s3.force-path-style -target=all
+    volumes:
+      - ./.data/enterprise-metrics:/data:rw
+      - ./config:/config:z
+
+  gateway:
+    logging:
+      <<: *logging
+    build:
+      context: .
+      dockerfile: dev.dockerfile
+    image: enterprise-metrics
+    ports:
+      - 3100
+      - 7946
+      - 9095
+      - 18001
+    environment:
+      - JAEGER_AGENT_HOST=jaeger
+      - JAEGER_AGENT_PORT=6831
+      - JAEGER_TAGS=app=gateway
+      - JAEGER_SAMPLER_TYPE=const
+      - JAEGER_SAMPLER_PARAM=1
+    command:
+      - sh
+      - -euc
+      - |
+        echo -n "waiting for minio to be ready: " >&2
+        until wget -O /dev/null -S http://minio:9000/minio/health/ready 2>&1 | grep "200 OK" > /dev/null 2> /dev/null; do
+          echo -n "." >&2
+          sleep 2
+        done
+        echo " ready" >&2
+
+        exec ./dlv exec ./enterprise-metrics --listen=:18001 --headless=true --api-version=2 --accept-multiclient --continue -- \
+          -config.file=/config/enterprise-metrics-config.yaml -s3.force-path-style -target=gateway
+    volumes:
+      - ./.data/gateway:/data:rw
+      - ./config:/config:z
+      - bootstrap:/bootstrap
+
+  tokengen:
+    logging:
+      <<: *logging
+    image: enterprise-metrics
+    command:
+      - sh
+      - -euc
+      - |
+        echo -n "waiting for minio to be ready: " >&2
+        until wget -O /dev/null -S http://minio:9000/minio/health/ready 2>&1 | grep "200 OK" > /dev/null 2> /dev/null; do
+          echo -n "." >&2
+          sleep 2
+        done
+        echo " ready" >&2
+
+        # Generate an initial admin token using the tokengen command if one does not already exist.
+        if ! test -e /bootstrap/token; then
+          ./enterprise-metrics \
+            -config.file=/config/enterprise-metrics-config.yaml \
+            -tokengen.token-file=/bootstrap/token \
+            -target=tokengen
+          chmod 0644 /bootstrap/token
+        fi
+
+        # this will sleep forever while still exiting immediately after SIGTERM
+        trap 'trap - TERM; kill -s TERM -- -$$' TERM
+        tail -f /dev/null & wait
+        exit 0
+    ports:
+      - 80
+    volumes:
+      - ./config:/config:z
+      - bootstrap:/bootstrap
+    depends_on:
+      - minio
+
+  provisioner:
+    logging:
+      <<: *logging
+    image: enterprise-metrics
+    entrypoint:
+      - ./enterprise-metrics-provisioner
+      - --instance=team-a
+      - --access-policy=prometheus-a:team-a:metrics:write
+      - --token=prometheus-a
+      - --access-policy=grafana-a:team-a:metrics:read,rules:read,rules:write
+      - --token=grafana-a
+      - --instance=team-b
+      - --access-policy=prometheus-b:team-b:metrics:write
+      - --token=prometheus-b
+      - --access-policy=grafana-b:team-b:metrics:read,rules:read,rules:write
+      - --token=grafana-b
+      - --access-policy=grafana-ab:team-a,team-b:metrics:read
+      - --token=grafana-ab
+      - --access-policy=alertmanager-a:team-a:alerts:read,alerts:write
+      - --token=alertmanager-a
+      - --cortex-url=http://gateway
+      - --wait
+    volumes:
+      - bootstrap:/bootstrap
+    depends_on:
+      - tokengen
+
+  alertmanager:
+    logging:
+      <<: *logging
+    image: enterprise-metrics
+    command:
+      - sh
+      - -euc
+      - |
+        echo -n "waiting for minio to be ready: " >&2
+        until wget -O /dev/null -S http://minio:9000/minio/health/ready 2>&1 | grep "200 OK" > /dev/null 2> /dev/null; do
+          echo -n "." >&2
+          sleep 2
+        done
+        echo " ready" >&2
+
+        # run enterprise-metrics as an alertmanager
+        exec ./enterprise-metrics \
+          -config.file=/config/enterprise-metrics-config.yaml \
+          -target=alertmanager \
+          -alertmanager.configs.fallback=/config/alertmanager.yaml
+    ports:
+      - 3100
+    volumes:
+      - ./config:/config:z
+      - bootstrap:/bootstrap
+    depends_on:
+      - minio
+
+# --- end loki section ---
+  minio:
+    logging:
+      <<: *logging
+    image: minio/minio:RELEASE.2021-01-16T02-19-44Z
+    entrypoint:
+      - sh
+      - -euc
+      - |
+        mkdir -p /data/enterprise-metrics-tsdb && mkdir -p /data/enterprise-metrics-alertmanager && mkdir -p /data/admin && mkdir -p /data/enterprise-metrics-ruler && /usr/bin/minio server /data
+    environment:
+      - MINIO_ACCESS_KEY=enterprise-metrics
+      - MINIO_SECRET_KEY=supersecret
+      - MINIO_PROMETHEUS_AUTH_TYPE=public
+      - MINIO_UPDATE=off
+    ports:
+      - 9000
+    volumes:
+      - ./.data/minio:/data:rw
+
+  jaeger:
+    logging:
+      <<: *logging
+    image: jaegertracing/all-in-one
+    ports:
+      - 16686:16686
+      - "14268"
+
+  grafana:
+    logging:
+      <<: *logging
+    image: grafana/grafana:latest
+    environment:
+      - GF_PATHS_PROVISIONING=/etc/config/grafana/provisioning
+    entrypoint:
+      - sh
+      - -euc
+      - |
+        ls /bootstrap
+        export TEAM_A_TOKEN=$$(cat /bootstrap/token-grafana-a)
+        export TEAM_B_TOKEN=$$(cat /bootstrap/token-grafana-b)
+        /run.sh
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./config/datasource.yaml:/etc/config/grafana/provisioning/datasources/ds.yaml
+      - bootstrap:/bootstrap
+    depends_on:
+      - provisioner
+
+  consul:
+    logging:
+      <<: *logging
+    image: consul
+    command: [ "agent", "-dev" ,"-client=0.0.0.0", "-log-level=info" ]
+    ports:
+      - 8500:8500
+
+  prometheus-a:
+    logging:
+      <<: *logging
+    image: prom/prometheus:v2.24.1
+    ports:
+      - 9090
+    entrypoint:
+      - sh
+      - -euc
+      - |
+        echo -n "waiting for provisioning to happen: " >&2
+        until test -e /bootstrap/token-prometheus-a; do
+          echo -n "." >&2
+          sleep 1
+        done
+        echo " ready" >&2
+
+        cat > prometheus.yml <<EOF
+        global:
+          evaluation_interval: 15s
+          scrape_interval: 15s
+        remote_write:
+          - url: '${METRICS_ENTERPRISE_HOST:-http://enterprise-metrics}/api/v1/push'
+            basic_auth:
+              username: team-a
+              password_file: /bootstrap/token-prometheus-a
+        scrape_configs:
+          - job_name: prometheus
+            static_configs:
+              - targets:
+                  - 'localhost:9090'
+                labels:
+                  instance: agent
+          - job_name: grafana
+            static_configs:
+              - labels:
+                  instance: grafana
+                targets:
+                  - 'grafana:3000'
+          - job_name: minio
+            metrics_path: /minio/prometheus/metrics
+            static_configs:
+              - labels:
+                  instance: minio
+                targets:
+                  - 'minio:9000'
+        EOF
+        exec prometheus
+    volumes:
+      - bootstrap:/bootstrap
+    depends_on:
+      - provisioner
+
+  agent-b:
+    logging:
+      <<: *logging
+    image: grafana/agent:v0.11.0
+    ports:
+      - 9090
+    entrypoint:
+      - sh
+      - -euc
+      - |
+        echo -n "waiting for provisioning to happen: " >&2
+        until test -e /bootstrap/token-prometheus-b; do
+          echo -n "." >&2
+          sleep 1
+        done
+        echo " ready" >&2
+
+        cat > agent.yml <<EOF
+        server:
+          log_level: debug
+          http_listen_port: 9090
+        prometheus:
+          global:
+            evaluation_interval: 15s
+            scrape_interval: 15s
+          configs:
+            - name: agent
+              remote_write:
+                - url: '${METRICS_ENTERPRISE_HOST:-http://enterprise-metrics}/api/v1/push'
+                  basic_auth:
+                    username: team-b
+                    password_file: /bootstrap/token-prometheus-b
+              scrape_configs:
+                - job_name: agent
+                  static_configs:
+                    - targets:
+                        - 'localhost:9090'
+                      labels:
+                        instance: agent
+                - job_name: grafana
+                  static_configs:
+                    - labels:
+                        instance: grafana
+                      targets:
+                        - 'grafana:3000'
+                - job_name: minio
+                  metrics_path: /minio/prometheus/metrics
+                  static_configs:
+                    - labels:
+                        instance: minio
+                      targets:
+                        - 'minio:9000'
+        EOF
+        exec agent -config.file=agent.yml -prometheus.wal-directory=/tmp/agent/wal
+    volumes:
+      - bootstrap:/bootstrap
+    depends_on:
+      - provisioner
