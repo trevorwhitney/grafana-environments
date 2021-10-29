@@ -12,7 +12,7 @@ instrumentation:
     address: "dns:///enterprise-metrics:9095"
 
 limits:
-  ingestion_rate_strategy: "local"
+  ingestion_rate_strategy: "global"
   ingestion_burst_size: 350000
   ingestion_rate: 350000
   max_global_series_per_metric: 300000
@@ -52,7 +52,14 @@ ruler:
   enable_api: true
   ring:
     kvstore:
-      store: memberlist
+      # store: memberlist
+      store: consul
+      consul:
+        # consistent_reads: false
+        host: consul:8500
+        # http_client_timeout: 20s
+        # watch_burst_size: 1
+        # watch_rate_limit: 1
   remote_write:
     enabled: true
     wal_dir: /wal/ruler
@@ -64,6 +71,17 @@ distributor:
   shard_by_all_labels: true
   pool:
     health_check_ingesters: true
+  ring:
+    kvstore:
+      # store: memberlist
+      store: consul
+      consul:
+        # consistent_reads: false
+        host: consul:8500
+        # http_client_timeout: 20s
+        # watch_burst_size: 1
+        # watch_rate_limit: 1
+
 
 usage_reporting:
   collect_interval: 1m
@@ -97,7 +115,14 @@ ingester:
 
     ring:
       kvstore:
-        store: memberlist
+        # store: memberlist
+        store: consul
+        consul:
+          # consistent_reads: false
+          host: consul:8500
+          # http_client_timeout: 20s
+          # watch_burst_size: 1
+          # watch_rate_limit: 1
       replication_factor: 1
 
 blocks_storage:
@@ -143,7 +168,14 @@ compactor:
   sharding_strategy: time-sharding
   sharding_ring:
     kvstore:
-      store: memberlist
+      # store: memberlist
+      store: consul
+      consul:
+        # consistent_reads: false
+        host: consul:8500
+        # http_client_timeout: 20s
+        # watch_burst_size: 1
+        # watch_rate_limit: 1
 
 gateway:
   proxy:

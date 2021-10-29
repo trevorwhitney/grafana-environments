@@ -43,6 +43,8 @@ services:
     volumes:
       - ./.data/enterprise-metrics:/data:rw
       - ./config:/config:z
+    depends_on:
+      - consul
 
   gateway:
     logging:
@@ -79,6 +81,8 @@ services:
       - ./.data/gateway:/data:rw
       - ./config:/config:z
       - bootstrap:/bootstrap
+    depends_on:
+      - enterprise-metrics
 
   tokengen:
     logging:
@@ -227,7 +231,7 @@ services:
     image: consul
     command: [ "agent", "-dev" ,"-client=0.0.0.0", "-log-level=info" ]
     ports:
-      - 8500:8500
+      - 8500
 
   prometheus-a:
     logging:
@@ -251,7 +255,7 @@ services:
           evaluation_interval: 15s
           scrape_interval: 15s
         remote_write:
-          - url: '${METRICS_ENTERPRISE_HOST:-http://enterprise-metrics}/api/v1/push'
+          - url: 'http://gateway:3100/api/v1/push'
             basic_auth:
               username: team-a
               password_file: /bootstrap/token-prometheus-a
@@ -310,7 +314,7 @@ services:
           configs:
             - name: agent
               remote_write:
-                - url: '${METRICS_ENTERPRISE_HOST:-http://enterprise-metrics}/api/v1/push'
+                - url: 'http://gateway:3100/api/v1/push'
                   basic_auth:
                     username: team-b
                     password_file: /bootstrap/token-prometheus-b
