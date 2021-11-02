@@ -24,6 +24,16 @@ limits:
 runtime_config:
   file: /config/runtime-config.yaml
 
+admin_api:
+  leader_election:
+    enabled: true
+    ring:
+      kvstore:
+        # store: memberlist
+        store: consul
+        consul:
+          host: consul:8500
+
 admin_client:
   storage:
     s3:
@@ -37,7 +47,7 @@ admin_client:
 ruler:
   alertmanager_url: http://alertmanager/alertmanager
   enable_alertmanager_v2: true
-  rule_path: "/tmp/rules"
+  rule_path: "/data/rules"
   storage:
     type: s3
     s3:
@@ -55,14 +65,10 @@ ruler:
       # store: memberlist
       store: consul
       consul:
-        # consistent_reads: false
         host: consul:8500
-        # http_client_timeout: 20s
-        # watch_burst_size: 1
-        # watch_rate_limit: 1
   remote_write:
     enabled: true
-    wal_dir: /wal/ruler
+    wal_dir: /data/wal/ruler
     min_wal_time: 1m
     max_wal_time: 5m
     wal_truncate_frequency: 1m
@@ -76,12 +82,7 @@ distributor:
       # store: memberlist
       store: consul
       consul:
-        # consistent_reads: false
         host: consul:8500
-        # http_client_timeout: 20s
-        # watch_burst_size: 1
-        # watch_rate_limit: 1
-
 
 usage_reporting:
   collect_interval: 1m
@@ -115,14 +116,9 @@ ingester:
 
     ring:
       kvstore:
-        # store: memberlist
         store: consul
         consul:
-          # consistent_reads: false
           host: consul:8500
-          # http_client_timeout: 20s
-          # watch_burst_size: 1
-          # watch_rate_limit: 1
       replication_factor: 1
 
 blocks_storage:
@@ -161,7 +157,7 @@ compactor:
   block_ranges: [2m, 4m, 8m]
   compaction_interval: 1m
   compaction_concurrency: 2
-  data_dir: "/tmp/cortex-compactor"
+  data_dir: "/data/cortex-compactor"
   cleanup_interval: 1m
   tenant_cleanup_delay: 1m
   sharding_enabled: true
@@ -171,11 +167,7 @@ compactor:
       # store: memberlist
       store: consul
       consul:
-        # consistent_reads: false
         host: consul:8500
-        # http_client_timeout: 20s
-        # watch_burst_size: 1
-        # watch_rate_limit: 1
 
 gateway:
   proxy:
