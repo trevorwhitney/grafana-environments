@@ -1,0 +1,13 @@
+---
+accessKey: loki
+rootUser: loki
+secretKey: supersecret
+rootPassword: supersecret
+buckets:
+  - name: loki-data
+    policy: public
+    purge: false
+persistence:
+  enabled: true
+  storage-class: local-path
+  size: 10Gi

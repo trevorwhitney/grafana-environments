@@ -1,6 +1,7 @@
+---
 version: "3.4"
 services:
-# --- start loki section ---
+  # --- start loki section ---
   read:
     logging: &logging
       driver: loki-compose
@@ -128,7 +129,7 @@ services:
     ports:
       - "3101:3101"
 
-# --- end loki section ---
+  # --- end loki section ---
 
   minio:
     logging:

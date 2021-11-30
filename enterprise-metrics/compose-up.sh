@@ -17,6 +17,7 @@ done
 pushd "${SCRIPT_DIR}/../../backend-enterprise"
   pwd
   echo 'building enterprise-metrics'
+  go mod vendor
   CGO_ENABLED=0 GOOS=linux go build -mod=vendor -gcflags "all=-N -l" -o "${SCRIPT_DIR}/enterprise-metrics" "./cmd/enterprise-metrics"
   pushd "${SCRIPT_DIR}/../../backend-enterprise/tools"
     go mod vendor

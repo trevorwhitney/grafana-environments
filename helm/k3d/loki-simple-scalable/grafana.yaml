@@ -1,0 +1,25 @@
+---
+env:
+  GF_AUTH_ANONYMOUS_ENABLED: true
+  GF_AUTH_ANONYMOUS_ORG_ROLE: Admin
+  GF_FEATURE_TOGGLES_ENABLE: ngalert
+
+datasources:
+  datasources.yaml:
+    apiVersion: 1
+    datasources:
+      - name: Jaeger
+        type: jaeger
+        access: proxy
+        url: http://jaeger-query.jaeger.svc.cluster.local
+        uid: jaeger_uid
+      - name: Loki
+        type: loki
+        access: proxy
+        url: http://loki-simple-scalable-gateway.logs.svc.cluster.local
+        jsonData:
+          derivedFields:
+            - datasourceUid: jaeger_uid
+              matcherRegex: "traceID=(\\w+)"
+              name: TraceID
+              url: "$${__value.raw}"
