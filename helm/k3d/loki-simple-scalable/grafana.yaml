@@ -23,3 +23,10 @@ datasources:
               matcherRegex: "traceID=(\\w+)"
               name: TraceID
               url: "$${__value.raw}"
+
+grafana.ini:
+  "tracing.jaeger":
+    address: "jaeger-agent.jaeger.svc.cluster.local:6831"
+    always_included_tag: "app=loki"
+    sampler_type: "const"
+    sampler_param: 1
