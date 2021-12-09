@@ -34,10 +34,20 @@ helm.upgradeOrInstall(
 	helm.cwd() .. "/grafana.yaml"
 )
 
+helm.upgradeOrInstall(5, "jaeger", "jaeger", "jaegertracing/jaeger", helm.cwd() .. "/jaeger.yaml")
+
 helm.upgradeOrInstall(
-	5,
-	"jaeger",
-  "jaeger",
-	"jaegertracing/jaeger",
-	helm.cwd() .. "/jaeger.yaml"
+	1,
+	"prometheus",
+	"prometheus",
+	"prometheus-community/prometheus",
+	helm.cwd() .. "/prometheus.yaml"
+)
+
+helm.upgradeOrInstall(
+	1,
+	"kube-state-metrics",
+	"kube-state-metrics",
+	"prometheus-community/kube-state-metrics",
+	helm.cwd() .. "/kube-state-metrics.yaml"
 )

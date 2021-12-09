@@ -1,5 +1,8 @@
 ---
 loki:
+  podAnnotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "3100"
   config:
     common:
       storage:

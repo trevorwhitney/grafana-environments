@@ -4,10 +4,18 @@ env:
   GF_AUTH_ANONYMOUS_ORG_ROLE: Admin
   GF_FEATURE_TOGGLES_ENABLE: ngalert
 
+podAnnotations:
+  prometheus.io/scrape: "true"
+  prometheus.io/port: "3000"
+
 datasources:
   datasources.yaml:
     apiVersion: 1
     datasources:
+      - name: Prometheus
+        type: prometheus
+        access: proxy
+        url: http://prometheus-server.prometheus.svc.cluster.local
       - name: Jaeger
         type: jaeger
         access: proxy
