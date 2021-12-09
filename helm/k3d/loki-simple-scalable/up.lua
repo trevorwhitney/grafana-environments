@@ -23,7 +23,6 @@ helm.upgradeOrInstall(
 	helm.cwd() .. "/promtail.yaml"
 )
 
--- the minio chart seems to have gone missing?
 helm.upgradeOrInstall(1, "minio", "minio", "minio/minio", helm.cwd() .. "/minio.yaml")
 
 helm.upgradeOrInstall(
