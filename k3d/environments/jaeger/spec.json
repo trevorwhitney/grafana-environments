@@ -1,0 +1,14 @@
+{
+  "apiVersion": "tanka.dev/v1alpha1",
+  "kind": "Environment",
+  "metadata": {
+    "name": "environments/jaeger",
+    "namespace": "environments/jaeger/main.jsonnet"
+  },
+  "spec": {
+    "apiServer": "https://0.0.0.0:44579",
+    "namespace": "jaeger",
+    "resourceDefaults": {},
+    "expectVersions": {}
+  }
+}

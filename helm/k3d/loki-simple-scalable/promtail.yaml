@@ -1,3 +1,0 @@
----
-config:
-  lokiAddress: http://loki-simple-scalable-gateway.logs.svc.cluster.local/loki/api/v1/push
