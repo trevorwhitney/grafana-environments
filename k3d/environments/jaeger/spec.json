@@ -6,7 +6,7 @@
     "namespace": "environments/jaeger/main.jsonnet"
   },
   "spec": {
-    "apiServer": "https://0.0.0.0:44579",
+    "apiServer": "https://0.0.0.0:38775",
     "namespace": "jaeger",
     "resourceDefaults": {},
     "expectVersions": {}

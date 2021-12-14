@@ -9,9 +9,7 @@ local cluster = "loki-distributed"
 package.path = path(cwd .. "/../../lib/?.lua;") .. package.path
 local helm = require("helm")
 local k3d = require("k3d").new(cluster)
-k3d.prepare()
-
-local tanka = require("tanka").new(ksonnet_path)
+k3d:prepare()
 
 helm.upgrade("promtail", "promtail", workspace .. "/grafana/helm-charts/charts/promtail", cwd .. "/promtail.yaml")
 
@@ -30,6 +28,7 @@ helm.upgrade("grafana", "grafana", workspace .. "/grafana/helm-charts/charts/gra
 k3d:create_namespace("jaeger")
 local kPort = k3d:get_server_port()
 
+local tanka = require("tanka").new(ksonnet_path)
 local jaegerEnv = "environments/jaeger"
 tanka:set_server_port(kPort, jaegerEnv)
 tanka:apply(jaegerEnv)
