@@ -35,4 +35,4 @@ helm.upgrade("gel", "gel-distributed", workspace .. "/grafana/helm-charts/charts
 helm.upgrade("grafana", "grafana", workspace .. "/grafana/helm-charts/charts/grafana", cwd .. "/grafana.yaml")
 
 -- Install prometheus
-helm.upgrade("prometheus", "prometheus", "prometheus-community/prometheus", cwd .. "/prometheus.yaml")
+helm.upgrade("prometheus", "prometheus", "prometheus-community/prometheus", ksonnet_path .. "/lib/helm/prometheus.yaml")
