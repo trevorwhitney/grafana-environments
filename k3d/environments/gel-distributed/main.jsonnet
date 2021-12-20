@@ -13,7 +13,7 @@ local grafana = import 'grafana/grafana.libsonnet';
 local prometheus = import 'prometheus/prometheus.libsonnet';
 local promtail = import 'promtail/promtail.libsonnet';
 
-gelDistributed + grafana + prometheus + promtail {
+gelDistributed + grafana + prometheus + promtail + jaeger + provisioner {
   local namespace = spec.namespace,
   local registry = 'k3d-grafana:45629',
   local clusterName = 'enterprise-logs-test-fixture',
@@ -30,6 +30,13 @@ gelDistributed + grafana + prometheus + promtail {
   local prometheusAnnotations = { 'prometheus.io/scrape': 'true', 'prometheus.io/port': '3100' },
   local envVar = if std.objectHasAll(k.core.v1, 'envVar') then k.core.v1.envVar else k.core.v1.container.envType,
 
+  gelConfig:: {
+
+  },
+
+  _images+: {
+    provisioner: '%s/enterprise-metrics-provisioner' % registry,
+  },
 
   _config+:: {
     clusterName: 'enterprise-logs-test-fixture',
@@ -38,6 +45,7 @@ gelDistributed + grafana + prometheus + promtail {
     jaegerAgentPort: 6831,
     namespace: namespace,
     provisionerSecret: provisionerSecret,
+    adminToken: 'gel-admin-token',
 
     grafana: {
       datasources: [
@@ -77,38 +85,25 @@ gelDistributed + grafana + prometheus + promtail {
         },
       ],
     },
-  },
 
+    provisioner: {
+      initCommand: [
+        '/usr/bin/enterprise-metrics-provisioner',
 
-  provisioner: provisioner {
-    _images+: {
-      provisioner: '%s/enterprise-metrics-provisioner' % registry,
-    },
-    _config+: {
-      adminToken: 'gel-admin-token',
-      adminApiUrl:: null,
-      provisioningTokensSecretName:: null,
-    },
+        '-bootstrap-path=/shared',
+        '-cluster-name=' + clusterName,
+        '-cortex-url=' + gatewayUrl,
+        '-token-file=/bootstrap/token',
 
-    command: [
-      '/usr/bin/enterprise-metrics-provisioner',
+        '-instance=team-l',
 
-      '-bootstrap-path=/shared',
-      '-cluster-name=' + clusterName,
-      '-cortex-url=' + gatewayUrl,
-      '-token-file=/bootstrap/token',
+        '-access-policy=promtail-l:team-l:logs:write',
+        '-access-policy=grafana-l:team-l:logs:read',
 
-      '-instance=team-l',
-
-      '-access-policy=promtail-l:team-l:logs:write',
-      '-access-policy=grafana-l:team-l:logs:read',
-
-      '-token=promtail-l',
-      '-token=grafana-l',
-    ],
-
-    container+: {
-      command: [
+        '-token=promtail-l',
+        '-token=grafana-l',
+      ],
+      containerCommand: [
         'bash',
         '-c',
         'kubectl create secret generic '
@@ -116,12 +111,6 @@ gelDistributed + grafana + prometheus + promtail {
         + ' --from-literal=token-promtail-l="$(cat /shared/token-promtail-l)"'
         + ' --from-literal=token-grafana-l="$(cat /shared/token-grafana-l)" ',
       ],
-    },
-  },
-
-  jaeger: jaeger {
-    _config+:: {
-      namespace: namespace,
     },
   },
 }
