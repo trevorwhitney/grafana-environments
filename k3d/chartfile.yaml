@@ -1,0 +1,16 @@
+directory: charts
+repositories:
+- name: grafana
+  url: https://grafana.github.io/grafana/helm-charts
+- name: prometheus-community
+  url: https://prometheus-community.github.io/helm-charts
+requires:
+- chart: grafana/promtail
+  version: 3.8.1
+- chart: grafana/enterprise-logs
+  version: 1.3.2
+- chart: grafana/grafana
+  version: 6.20.1
+- chart: prometheus-community/prometheus
+  version: 15.0.1
+version: 

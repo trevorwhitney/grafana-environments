@@ -1,3 +1,0 @@
----
-config:
-  lokiAddress: http://gel-distributed-enterprise-logs-gateway.loki.svc.cluster.local/loki/api/v1/push

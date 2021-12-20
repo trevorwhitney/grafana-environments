@@ -6,12 +6,12 @@ local tanka = {}
 -- class Tanka
 local Tanka = {}
 
-function Tanka:set_server_port(port, env)
+function Tanka:set_server_port(port)
 	local _, err = shell.run({
 		"tk",
 		"env",
 		"set",
-		env,
+		self.environment,
 		"--server=https://0.0.0.0:" .. port,
 	}, {
 		chdir = self.ksonnet_path,
@@ -23,12 +23,12 @@ function Tanka:set_server_port(port, env)
 	end
 end
 
-function Tanka:apply(env)
+function Tanka:apply()
 	local _, err = shell.run({
 		"tk",
 		"apply",
-		env,
-    "--dangerous-auto-approve"
+		self.environment,
+		"--dangerous-auto-approve",
 	}, {
 		chdir = self.ksonnet_path,
 	})
@@ -39,11 +39,14 @@ function Tanka:apply(env)
 	end
 end
 
-function tanka.new(ksonnet_path)
+function tanka.new(ksonnet_path, environment, port)
 	local self = {
 		ksonnet_path = ksonnet_path,
+		environment = "environments/" .. environment,
 	}
 	setmetatable(self, { __index = Tanka })
+
+	self:set_server_port(port)
 	return self
 end
 

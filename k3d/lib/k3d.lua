@@ -1,6 +1,5 @@
 local shell = require("shell-games")
 
-
 --- @module tanka
 local k3d = {}
 
@@ -59,25 +58,131 @@ function K3d:get_server_port()
 	return string.gsub(result.output, "\n", "")
 end
 
+local function get_registry_port()
+	local registry_port, err = shell.run_raw(
+		"k3d registry list k3d-grafana -o json | "
+			.. 'jq -r \'.[] | select(.name=="k3d-grafana") | .portMappings."5000/tcp"[0].HostPort\'',
+		{
+			capture = true,
+		}
+	)
+	if err then
+		print(err)
+		os.exit(1)
+	end
+
+	return string.gsub(registry_port.output, "\n", "")
+end
+
 function K3d:prepare()
 	prepareRegistry()
 	prepareCluster(self.cluster)
 	setContext(self.cluster)
+	self:create_namespace()
+
+	self.registry_port = get_registry_port()
 end
 
-function K3d:create_namespace(namespace)
+function K3d:build_provisioner_image(backend_enterprise_path)
+	local exists = shell.run_raw(
+		"docker image ls | grep k3d-grafana:" .. self.registry_port .. "/enterprise-metrics-provisioner"
+	)
+	if exists then
+		return
+	end
+
+	shell.run({
+		"make",
+		"enterprise-metrics-provisioner-image",
+	}, {
+		chdir = backend_enterprise_path,
+	})
+	shell.run({
+		"docker",
+		"tag",
+		"us.gcr.io/kubernetes-dev/enterprise-metrics-provisioner",
+		"k3d-grafana:" .. self.registry_port .. "/enterprise-metrics-provisioner",
+	}, {
+		chdir = backend_enterprise_path,
+	})
+	shell.run({
+		"docker",
+		"push",
+		"k3d-grafana:" .. self.registry_port .. "/enterprise-metrics-provisioner",
+	}, {
+		chdir = backend_enterprise_path,
+	})
+end
+
+function K3d:build_gel_image(gel_path)
+	local exists = shell.run_raw(
+		"docker image ls | grep k3d-grafana:" .. self.registry_port .. "/enterprise-logs | grep latest"
+	)
+	if exists then
+		return
+	end
+
+	shell.run({
+		"make",
+		"enterprise-logs-image",
+	}, {
+		chdir = gel_path,
+	})
+	shell.run({
+		"docker",
+		"tag",
+		"us.gcr.io/kubernetes-dev/enterprise-logs",
+		"k3d-grafana:" .. self.registry_port .. "/enterprise-logs:latest",
+	}, {
+		chdir = gel_path,
+	})
+	shell.run({
+		"docker",
+		"push",
+		"k3d-grafana:" .. self.registry_port .. "/enterprise-logs:latest",
+	})
+end
+
+function K3d:create_namespace()
 	setContext(self.cluster)
 	shell.run({
 		"kubectl",
 		"create",
 		"namespace",
-		namespace,
+		self.namespace,
 	})
 end
 
-function k3d.new(cluster)
+function K3d:port_forward(service, ports)
+	shell.run({
+		"kubectl",
+		"--namespace",
+		self.namespace,
+		"port-forward",
+		service,
+		ports,
+	})
+end
+
+function K3d:create_license_secret(namespace, name, path)
+	setContext(self.cluster)
+	shell.run({
+		"kubectl",
+		"create",
+		"secret",
+		"generic",
+		name,
+		"--namespace",
+		namespace,
+		"--from-file",
+		"license.jwt=" .. path,
+	})
+end
+
+function k3d.new(cluster, namespace)
 	local self = {
-		cluster = cluster
+		cluster = cluster,
+		namespace = namespace,
 	}
 	setmetatable(self, { __index = K3d })
 	return self

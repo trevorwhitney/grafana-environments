@@ -1,8 +1,9 @@
+---
 version: "3.4"
 volumes:
   bootstrap: {}
 services:
-# --- start loki section ---
+  # --- start loki section ---
   enterprise-metrics:
     logging: &logging
       driver: loki-compose
@@ -175,7 +176,7 @@ services:
     depends_on:
       - minio
 
-# --- end loki section ---
+  # --- end loki section ---
   minio:
     logging:
       <<: *logging
@@ -229,7 +230,7 @@ services:
     logging:
       <<: *logging
     image: consul
-    command: [ "agent", "-dev" ,"-client=0.0.0.0", "-log-level=info" ]
+    command: ["agent", "-dev", "-client=0.0.0.0", "-log-level=info"]
     ports:
       - 8500
 
