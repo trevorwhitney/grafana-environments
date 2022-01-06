@@ -114,11 +114,11 @@ function K3d:build_provisioner_image(backend_enterprise_path)
 	})
 end
 
-function K3d:build_gel_image(gel_path)
+function K3d:build_gel_image(gel_path, force)
 	local exists = shell.run_raw(
 		"docker image ls | grep k3d-grafana:" .. self.registry_port .. "/enterprise-logs | grep latest"
 	)
-	if exists then
+	if exists and not force then
 		return
 	end
 

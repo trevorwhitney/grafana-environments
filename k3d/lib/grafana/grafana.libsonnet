@@ -11,14 +11,44 @@ local helm = tanka.helm.new(std.thisFile) {
     jaegerAgentPort: 6831,
     namespace: error 'plase provide $._config.namespace',
     provisionerSecret: error 'please provide $._config.provisionerSecret',
+    provisioningDir: '/etc/grafana/provisioning',
+    gelUrl: error 'please provide $._config.gelUrl',
     grafana: {
       datasources: [],
     },
   },
 
+  _images+:: {
+    grafana: {
+      repository: 'grafana/grafana-enterprise',
+      tag: '8.2.5',
+      pullPolicy: 'IfNotPresent',
+    },
+  },
+
+  local configMap = k.core.v1.configMap,
+  pluginsConfigMap+:
+    configMap.new('grafana-plugins') +
+    configMap.withDataMixin({
+      'grafana-enterprise-logs.yml': std.manifestYamlDoc({
+        apiVersion: 1,
+        apps: [{
+          type: 'grafana-enterprise-logs-app',
+          jsonData: {
+            backendUrl: $._config.gelUrl,
+            base64EncodedAccessTokenSet: true,
+          },
+          secureJsonData: {
+            base64EncodedAccessToken: '${GEL_ADMIN_TOKEN}',
+          },
+        }],
+      }),
+    }),
+
   grafana: helm.template('grafana', '../../charts/grafana', {
     namespace: $._config.namespace,
     values: {
+      image: $._images.grafana,
       testFramework: {
         enabled: false,
       },
@@ -45,7 +75,16 @@ local helm = tanka.helm.new(std.thisFile) {
           sampler_type: 'const',
           sampler_param: 1,
         },
+        enterprise: {
+          license_text: importstr '../../secrets/grafana.jwt',
+        },
+        paths: {
+          provisioning: $._config.provisioningDir,
+        }
       },
+      plugins: [
+        'https://storage.googleapis.com/plugins-community/grafana-enterprise-logs-app/release/2.2.0/grafana-enterprise-logs-app-2.2.0.zip;grafana-enterprise-logs-app',
+      ],
     },
     kubeVersion: 'v1.18.0',
     noHooks: false,
@@ -67,7 +106,8 @@ local helm = tanka.helm.new(std.thisFile) {
         },
       ]),
     deployment_grafana+:
-      k.apps.v1.deployment.mapContainers(addEnvVars),
+      k.apps.v1.deployment.mapContainers(addEnvVars) +
+      k.util.configVolumeMount($.pluginsConfigMap.metadata.name, $._config.provisioningDir + '/plugins'),
   },
 
 }

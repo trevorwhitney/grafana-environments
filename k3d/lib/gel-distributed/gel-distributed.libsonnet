@@ -10,6 +10,15 @@ local helm = tanka.helm.new(std.thisFile) {
   local prometheusAnnotations = { 'prometheus.io/scrape': 'true', 'prometheus.io/port': '3100' },
   local envVar = if std.objectHasAll(k.core.v1, 'envVar') then k.core.v1.envVar else k.core.v1.container.envType,
 
+  _images+:: {
+    gel: {
+          registry: registry,
+          repository: 'enterprise-logs',
+          tag: 'latest',
+          pullPolicy: 'Always',
+        }
+  },
+
   _config+:: {
     namespace: error 'please provide $._config.namespace',
     clusterName: error 'please provide $._config.clusterName',
@@ -65,18 +74,13 @@ local helm = tanka.helm.new(std.thisFile) {
     helm.template($._config.clusterName, '../../charts/enterprise-logs', {
       namespace: $._config.namespace,
       values: {
-        image: {
-          registry: registry,
-          repository: 'enterprise-logs',
-          tag: 'latest',
-          pullPolicy: 'Always',
-        },
+        image: $._images.gel,
         gateway: { extraArgs: { 'log.level': 'debug' } },
         license: {
           contents: importstr '../../secrets/gel.jwt',
         },
         tokengen: { enable: true },
-        config: $._config.gel,
+        config: k.util.manifestYaml($._config.gel),
         'loki-distributed': {
           loki: {
             image: {
@@ -100,7 +104,7 @@ local helm = tanka.helm.new(std.thisFile) {
     }) + {
       ['deployment_%s_%s' % [normalizedClusterName, name]]+:
         k.apps.v1.deployment.mapContainers(addJaegerEnvVars) +
-        k.apps.v1.deployment.metadata.withAnnotations(prometheusAnnotations)
+        k.apps.v1.deployment.spec.template.metadata.withAnnotations(prometheusAnnotations)
       for name in [
         'admin_api',
         'distributor',
@@ -112,7 +116,7 @@ local helm = tanka.helm.new(std.thisFile) {
     } + {
       ['stateful_set_%s_%s' % [normalizedClusterName, name]]+:
         k.apps.v1.statefulSet.mapContainers(addJaegerEnvVars) +
-        k.apps.v1.statefulSet.metadata.withAnnotations(prometheusAnnotations)
+        k.apps.v1.statefulSet.spec.template.metadata.withAnnotations(prometheusAnnotations)
       for name in [
         'compactor',
         'index_gateway',

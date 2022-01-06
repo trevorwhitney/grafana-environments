@@ -15,7 +15,9 @@ local cluster = k3d.new(cluster_name, "gel-distributed")
 
 cluster:prepare()
 cluster:build_provisioner_image(path(workspace .. "/grafana/backend-enterprise"))
-cluster:build_gel_image(path(workspace .. "/grafana/loki-enterprise"))
+
+local force_build = false
+cluster:build_gel_image(path(workspace .. "/grafana/loki-enterprise"), force_build)
 
 local kPort = cluster:get_server_port()
 local tk = tanka.new(ksonnet_path, cluster_name, kPort)

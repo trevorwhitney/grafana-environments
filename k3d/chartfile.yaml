@@ -7,8 +7,6 @@ repositories:
 requires:
 - chart: grafana/promtail
   version: 3.8.1
-- chart: grafana/enterprise-logs
-  version: 1.3.2
 - chart: grafana/grafana
   version: 6.20.1
 - chart: prometheus-community/prometheus
