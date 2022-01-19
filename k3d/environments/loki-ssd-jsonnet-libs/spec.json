@@ -1,0 +1,14 @@
+{
+  "apiVersion": "tanka.dev/v1alpha1",
+  "kind": "Environment",
+  "metadata": {
+    "name": "environments/loki-ssd-jsonnet-libs",
+    "namespace": "environments/loki-ssd-jsonnet-libs/main.jsonnet"
+  },
+  "spec": {
+    "apiServer": "https://0.0.0.0:46617",
+    "namespace": "loki-ssd-jsonnet-libs",
+    "resourceDefaults": {},
+    "expectVersions": {}
+  }
+}

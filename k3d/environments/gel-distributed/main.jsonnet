@@ -1,10 +1,6 @@
 local k = import 'github.com/grafana/jsonnet-libs/ksonnet-util/kausal.libsonnet';
 local tanka = import 'github.com/grafana/jsonnet-libs/tanka-util/main.libsonnet';
 local spec = (import './spec.json').spec;
-local helm = tanka.helm.new(std.thisFile) {
-  template(name, chart, conf={})::
-    std.native('helmTemplate')(name, chart, conf { calledFrom: std.thisFile }),
-};
 local provisioner = import 'provisioner/provisioner.libsonnet';
 local jaeger = import 'jaeger/jaeger.libsonnet';
 

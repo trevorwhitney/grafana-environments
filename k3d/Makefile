@@ -9,10 +9,14 @@ loki-distributed: update-repos
 loki-simple-scalable: update-repos
 	make -C $(CURDIR)/environments/loki-simple-scalable up
 
+loki-ssd-jsonnet-libs: update-repos
+	make -C $(CURDIR)/environments/loki-ssd-jsonnet-libs up
+
 down:
 	make -C $(CURDIR)/environments/gel-distributed down
 	make -C $(CURDIR)/environments/loki-distributed down
 	make -C $(CURDIR)/environments/loki-simple-scalable down
+	make -C $(CURDIR)/environments/loki-ssd-jsonnet-libs down
 
 add-repos:
 	helm repo add prometheus-community https://prometheus-community.github.io/helm-charts

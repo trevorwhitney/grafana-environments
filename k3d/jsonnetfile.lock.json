@@ -18,7 +18,7 @@
           "subdir": "consul"
         }
       },
-      "version": "e2cfc18b7be54acc6978b7dab2c61ec5e37385a8",
+      "version": "0db65aa79a959234109566044b33d76edb0ca9d8",
       "sum": "Po3c1Ic96ngrJCtOazic/7OsLkoILOKZWXWyZWl+od8="
     },
     {
@@ -28,7 +28,7 @@
           "subdir": "enterprise-metrics"
         }
       },
-      "version": "e2cfc18b7be54acc6978b7dab2c61ec5e37385a8",
+      "version": "0db65aa79a959234109566044b33d76edb0ca9d8",
       "sum": "zBjtNmnhfGlOHX0yOQIkaN8qX0LymfUkbj5yEG9EakQ="
     },
     {
@@ -38,7 +38,7 @@
           "subdir": "etcd-operator"
         }
       },
-      "version": "e2cfc18b7be54acc6978b7dab2c61ec5e37385a8",
+      "version": "0db65aa79a959234109566044b33d76edb0ca9d8",
       "sum": "fQC1HY2iSTGfd4UfUE0nomf6NcRT+6xaVTDgwwRCrQc="
     },
     {
@@ -48,7 +48,7 @@
           "subdir": "grafana"
         }
       },
-      "version": "e2cfc18b7be54acc6978b7dab2c61ec5e37385a8",
+      "version": "0db65aa79a959234109566044b33d76edb0ca9d8",
       "sum": "7rANfqY8ERvoABHbwoGsdGpUeHxxYCSVOcM4Eky4QtQ="
     },
     {
@@ -58,7 +58,7 @@
           "subdir": "jaeger-agent-mixin"
         }
       },
-      "version": "e2cfc18b7be54acc6978b7dab2c61ec5e37385a8",
+      "version": "0db65aa79a959234109566044b33d76edb0ca9d8",
       "sum": "DsdBoqgx5kE3zc6fMYnfiGjW2+9Mx2OXFieWm1oFHgY="
     },
     {
@@ -68,8 +68,18 @@
           "subdir": "ksonnet-util"
         }
       },
-      "version": "e2cfc18b7be54acc6978b7dab2c61ec5e37385a8",
+      "version": "0db65aa79a959234109566044b33d76edb0ca9d8",
       "sum": "JDsc/bUs5Yv1RkGKcm0hMteqCKZqemxA3qP6eiEATr8="
+    },
+    {
+      "source": {
+        "git": {
+          "remote": "https://github.com/grafana/jsonnet-libs.git",
+          "subdir": "loki-simple-scalable"
+        }
+      },
+      "version": "8d2f202400f20ff28a6d26faaee1c3503627ec27",
+      "sum": "QdVTb1RV6KOV5JmnyOr5Z3jipbjQnYEP5IL3L44On1A="
     },
     {
       "source": {
@@ -78,7 +88,7 @@
           "subdir": "memcached"
         }
       },
-      "version": "e2cfc18b7be54acc6978b7dab2c61ec5e37385a8",
+      "version": "0db65aa79a959234109566044b33d76edb0ca9d8",
       "sum": "dTOeEux3t9bYSqP2L/uCuLo/wUDpCKH4w+4OD9fePUk="
     },
     {
@@ -88,7 +98,7 @@
           "subdir": "tanka-util"
         }
       },
-      "version": "e2cfc18b7be54acc6978b7dab2c61ec5e37385a8",
+      "version": "0db65aa79a959234109566044b33d76edb0ca9d8",
       "sum": "AGgjH6IJe/1qwNtxFIiG8V1uyOJZascEydQsNrfPQ4c="
     },
     {
