@@ -143,6 +143,46 @@ function K3d:build_gel_image(gel_path, force)
 	})
 end
 
+function K3d:build_loki_image(loki_path, force)
+	local exists = shell.run_raw(
+		"docker image ls | grep k3d-grafana:" .. self.registry_port .. "/loki | grep latest"
+	)
+	if exists and not force then
+		return
+	end
+
+	shell.run({
+		"make",
+		"loki-image",
+	}, {
+		chdir = loki_path,
+	})
+
+  local image_tag_output = shell.run({
+    "./tools/image-tag"
+  }, {
+		chdir = loki_path,
+    capture = true
+  })
+
+  local image_tag = string.gsub(image_tag_output.output, "\n", "")
+
+	shell.run({
+		"docker",
+		"tag",
+		"grafana/loki:" .. image_tag,
+		"k3d-grafana:" .. self.registry_port .. "/loki:latest",
+	}, {
+		chdir = loki_path,
+	})
+
+	shell.run({
+		"docker",
+		"push",
+		"k3d-grafana:" .. self.registry_port .. "/loki:latest",
+	})
+end
+
 function K3d:create_namespace()
 	setContext(self.cluster)
 	shell.run({

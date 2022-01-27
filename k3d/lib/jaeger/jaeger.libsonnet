@@ -9,6 +9,7 @@ local k = import 'github.com/grafana/jsonnet-libs/ksonnet-util/kausal.libsonnet'
   local queryServiceName = self.jaeger.query_service.metadata.name,
 
   _config+:: {
+    jagerAgentName: error 'must provide $._config.jaegerAgentName',
     jaeger: {
       agentPort: 6831,
       queryPort: 16686,
@@ -16,6 +17,16 @@ local k = import 'github.com/grafana/jsonnet-libs/ksonnet-util/kausal.libsonnet'
       agentConfigsPort: 5778,
       collectorZipkinHttpPort: 9411,
     },
+  },
+  
+  _addJaegerEnvVars:: function(c) c {
+    env: [
+      envVar.new('JAEGER_AGENT_HOST', $._config.jaegerAgentName),
+      envVar.new('JAEGER_AGENT_PORT', '6831'),
+      envVar.new('JAEGER_SAMPLER_TYPE', 'const'),
+      envVar.new('JAEGER_SAMPLER_PARAM', '1'),
+      envVar.new('JAEGER_TAGS', 'app=gel'),
+    ],
   },
 
   jaeger: {

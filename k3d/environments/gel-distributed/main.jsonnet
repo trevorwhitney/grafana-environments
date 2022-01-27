@@ -5,7 +5,7 @@ local provisioner = import 'provisioner/provisioner.libsonnet';
 local jaeger = import 'jaeger/jaeger.libsonnet';
 
 local gelDistributed = import 'gel-distributed/gel-distributed.libsonnet';
-local grafana = import 'grafana/grafana.libsonnet';
+local grafana = import 'grafana-gel/grafana.libsonnet';
 local prometheus = import 'prometheus/prometheus.libsonnet';
 local promtail = import 'promtail/promtail.libsonnet';
 
@@ -15,7 +15,8 @@ gelDistributed + grafana + prometheus + promtail + jaeger + provisioner {
   local clusterName = 'enterprise-logs-test-fixture',
   local normalizedClusterName = std.strReplace(clusterName, '-', '_'),
   local gatewayName = self.gel['service_%s_gateway' % normalizedClusterName].metadata.name,
-  local gatewayUrl = 'http://%s:3100' % gatewayName,
+  local gatewayHost = '%s:3100' % gatewayName,
+  local gatewayUrl = 'http://%s' % gatewayHost,
   local jaegerQueryName = self.jaeger.query_service.metadata.name,
   local jaegerQueryUrl = 'http://%s' % jaegerQueryName,
   local jaegerAgentName = self.jaeger.agent_service.metadata.name,
@@ -107,6 +108,7 @@ gelDistributed + grafana + prometheus + promtail + jaeger + provisioner {
   _config+:: {
     clusterName: 'enterprise-logs-test-fixture',
     gatewayName: gatewayName,
+    gatewayHost: gatewayHost,
     gelUrl: gatewayUrl,
     jaegerAgentName: jaegerAgentName,
     jaegerAgentPort: 6831,

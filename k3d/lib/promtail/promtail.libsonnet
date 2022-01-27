@@ -6,24 +6,28 @@ local helm = tanka.helm.new(std.thisFile) {
 };
 {
   _config+:: {
-    provisionerSecret: error 'please provide $._config.provisionerSecret',
+    provisionerSecret: null,
     namespace: error 'please provide $._config.namespace',
-    gatewayName: error 'please provide $._config.gatewayName',
+    gatewayHost: error 'please provide $._config.gatewayAddress',
   },
 
   promtail: helm.template('promtail', '../../charts/promtail', {
     namespace: $._config.namespace,
     values: {
       extraArgs: ['--config.expand-env=true'],
-      extraEnv: [{
+      extraEnv: if $._config.provisionerSecret == null then [] else [{
         name: 'PROVISIONING_TOKEN_PROMTAIL_L',
         valueFrom: {
           secretKeyRef: { name: $._config.provisionerSecret, key: 'token-promtail-l' },
         },
       }],
 
+      local lokiAddress = if $._config.provisionerSecret == null then
+        'http://%s/loki/api/v1/push' else
+        'http://team-l:${PROVISIONING_TOKEN_PROMTAIL_L}@%s/loki/api/v1/push',
+
       config: {
-        lokiAddress: 'http://team-l:${PROVISIONING_TOKEN_PROMTAIL_L}@%s:3100/loki/api/v1/push' % $._config.gatewayName,
+        lokiAddress: lokiAddress % $._config.gatewayHost,
       },
     },
     kubeVersion: 'v1.18.0',

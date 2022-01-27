@@ -12,6 +12,8 @@ local helm = tanka.helm.new(std.thisFile) {
     namespace: error 'plase prvoide $._config.namespace',
   },
 
+  _prometheusAnnotations:: { 'prometheus.io/scrape': 'true', 'prometheus.io/port': '3100' },
+
   prometheus: helm.template('prometheus', '../../charts/prometheus', {
     namespace: $._config.namespace,
     values: {
