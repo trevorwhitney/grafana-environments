@@ -8,7 +8,7 @@ local helm = tanka.helm.new(std.thisFile) {
   _config+:: {
     provisionerSecret: null,
     namespace: error 'please provide $._config.namespace',
-    gatewayHost: error 'please provide $._config.gatewayAddress',
+    promtailLokiHost: error 'please provide $._config.promtailLokiHost',
   },
 
   promtail: helm.template('promtail', '../../charts/promtail', {
@@ -27,8 +27,12 @@ local helm = tanka.helm.new(std.thisFile) {
         'http://team-l:${PROVISIONING_TOKEN_PROMTAIL_L}@%s/loki/api/v1/push',
 
       config: {
-        lokiAddress: lokiAddress % $._config.gatewayHost,
+        lokiAddress: lokiAddress % $._config.promtailLokiHost,
       },
+      initContainer: {
+        enabled: true,
+        fsInotifyMaxUserInstances: 256,
+      }
     },
     kubeVersion: 'v1.18.0',
     noHooks: false,

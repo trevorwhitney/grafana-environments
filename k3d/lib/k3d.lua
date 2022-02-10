@@ -13,16 +13,16 @@ local function prepareRegistry()
 	end
 end
 
-local function prepareCluster(cluster)
+local function prepareCluster(cluster, nodes)
 	local _, err = shell.run_raw("k3d cluster list | grep " .. cluster)
 	if err then
 		os.execute(
 			"k3d cluster create "
 				.. cluster
 				.. " --registry-use k3d-grafana:45629"
-				.. " --volume "
-				.. os.getenv("HOME")
-				.. "/.var/lib/rancher/k3d/storage:/var/lib/rancher/k3s/storage"
+        .. " --servers 1"
+        .. " --agents "
+        .. nodes
 		)
 	end
 end
@@ -76,7 +76,7 @@ end
 
 function K3d:prepare()
 	prepareRegistry()
-	prepareCluster(self.cluster)
+	prepareCluster(self.cluster, self.nodes)
 	setContext(self.cluster)
 	self:create_namespace()
 
@@ -219,10 +219,11 @@ function K3d:create_license_secret(namespace, name, path)
 	})
 end
 
-function k3d.new(cluster, namespace)
+function k3d.new(cluster, namespace, nodes)
 	local self = {
 		cluster = cluster,
 		namespace = namespace,
+    nodes = nodes
 	}
 	setmetatable(self, { __index = K3d })
 	return self

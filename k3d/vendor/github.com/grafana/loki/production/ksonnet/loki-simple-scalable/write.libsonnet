@@ -8,36 +8,38 @@ local k = import 'ksonnet-util/kausal.libsonnet';
   local service = k.core.v1.service,
 
   _config+:: {
-    read_replicas: 3,
+    write_replicas: 3,
   },
 
-  // Use PVC for queriers instead of node disk.
-  read_pvc::
-    pvc.new('read-data') +
+  // The writers should persist index files on a persistent
+  // volume in order to be crash resilient.
+  write_pvc::
+    pvc.new('write-data') +
     pvc.mixin.spec.resources.withRequests({ storage: '10Gi' }) +
-    pvc.mixin.spec.withAccessModes(['ReadWriteOnce']),
+    pvc.mixin.spec.withAccessModes(['ReadWriteOnce']) +
+    pvc.mixin.spec.withStorageClassName('fast'),
 
-  read_args::
+  write_args::
     $._config.commonArgs {
-      target: 'read',
+      target: 'write',
     },
 
-  read_container::
-    container.new('read', $._images.read) +
+  write_container::
+    container.new('write', $._images.write) +
     container.withPorts($.util.defaultPorts) +
-    container.withArgsMixin(k.util.mapToFlags($.read_args)) +
-    container.withVolumeMountsMixin([volumeMount.new('read-data', '/data')]) +
+    container.withArgsMixin(k.util.mapToFlags($.write_args)) +
+    container.withVolumeMountsMixin([volumeMount.new('write-data', '/data')]) +
     container.mixin.readinessProbe.httpGet.withPath('/ready') +
     container.mixin.readinessProbe.httpGet.withPort($._config.http_listen_port) +
     container.mixin.readinessProbe.withInitialDelaySeconds(15) +
     container.mixin.readinessProbe.withTimeoutSeconds(1),
 
-  read_statefulset:
-    statefulSet.new('read', $._config.read_replicas, [$.read_container], $.read_pvc) +
-    statefulSet.mixin.spec.withServiceName('read') +
-    statefulSet.mixin.metadata.withLabels({ app: $._config.headless_service_name, name: 'read' }) +
-    statefulSet.mixin.spec.selector.withMatchLabels({ name: 'read' }) +
-    statefulSet.mixin.spec.template.metadata.withLabels({ name: 'read', app: $._config.headless_service_name }) +
+  write_statefulset:
+    statefulSet.new('write', $._config.write_replicas, [$.write_container], $.write_pvc) +
+    statefulSet.mixin.spec.withServiceName('write') +
+    statefulSet.mixin.metadata.withLabels({ app: $._config.headless_service_name, name: 'write' }) +
+    statefulSet.mixin.spec.selector.withMatchLabels({ name: 'write' }) +
+    statefulSet.mixin.spec.template.metadata.withLabels({ name: 'write', app: $._config.headless_service_name }) +
     $._config.config_hash_mixin +
     k.util.configVolumeMount('loki', '/etc/loki') +
     k.util.antiAffinity +
@@ -46,11 +48,11 @@ local k = import 'ksonnet-util/kausal.libsonnet';
     statefulSet.mixin.spec.template.spec.withTerminationGracePeriodSeconds(4800) +
     statefulSet.mixin.spec.withPodManagementPolicy('Parallel'),
 
-  read_service:
-    k.util.serviceFor($.read_statefulset) +
+  write_service:
+    k.util.serviceFor($.write_statefulset) +
     service.mixin.spec.withType('ClusterIP') +
     service.mixin.spec.withPorts([
-      k.core.v1.servicePort.newNamed('read-http-metrics', 80, 'http-metrics'),
-      k.core.v1.servicePort.newNamed('read-grpc', 9095, 'grpc'),
+      k.core.v1.servicePort.newNamed('write-http-metrics', 80, 'http-metrics'),
+      k.core.v1.servicePort.newNamed('write-grpc', 9095, 'grpc'),
     ]),
 }

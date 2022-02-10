@@ -4,7 +4,12 @@ gel-distributed: update-repos secrets
 	make -C $(CURDIR)/environments/gel-distributed up
 
 loki-distributed: update-repos
-	make -C $(CURDIR)/environments/loki-distributed up
+	k3dsonnet create --cluster loki-distributed
+	tk env set ./environments/loki-distributed \
+		--server="https://0.0.0.0:$$(k3d node list -o json | jq -r '.[] | select(.name == "k3d-loki-distributed-serverlb") | .portMappings."6443"[] | .HostPort')"
+	kubectl config set-context k3d-loki-distributed
+	kubectl create namespace loki-distribute || true
+	k3dsonnet apply ./environments/loki-distributed
 
 loki-simple-scalable: update-repos
 	make -C $(CURDIR)/environments/loki-simple-scalable up
@@ -12,11 +17,15 @@ loki-simple-scalable: update-repos
 loki-ssd-jsonnet-libs: update-repos
 	make -C $(CURDIR)/environments/loki-ssd-jsonnet-libs up
 
+gel-ssd: update-repos secrets
+	make -C $(CURDIR)/environments/gel-ssd up
+
 down:
 	make -C $(CURDIR)/environments/gel-distributed down
 	make -C $(CURDIR)/environments/loki-distributed down
 	make -C $(CURDIR)/environments/loki-simple-scalable down
 	make -C $(CURDIR)/environments/loki-ssd-jsonnet-libs down
+	make -C $(CURDIR)/environments/gel-ssd down
 
 add-repos:
 	helm repo add prometheus-community https://prometheus-community.github.io/helm-charts

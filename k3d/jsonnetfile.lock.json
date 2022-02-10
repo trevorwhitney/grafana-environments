@@ -18,7 +18,7 @@
           "subdir": "consul"
         }
       },
-      "version": "0db65aa79a959234109566044b33d76edb0ca9d8",
+      "version": "0bd3d19d09d3f83b10860ad93397224d327e2f67",
       "sum": "Po3c1Ic96ngrJCtOazic/7OsLkoILOKZWXWyZWl+od8="
     },
     {
@@ -28,7 +28,7 @@
           "subdir": "enterprise-metrics"
         }
       },
-      "version": "0db65aa79a959234109566044b33d76edb0ca9d8",
+      "version": "0bd3d19d09d3f83b10860ad93397224d327e2f67",
       "sum": "zBjtNmnhfGlOHX0yOQIkaN8qX0LymfUkbj5yEG9EakQ="
     },
     {
@@ -38,7 +38,7 @@
           "subdir": "etcd-operator"
         }
       },
-      "version": "0db65aa79a959234109566044b33d76edb0ca9d8",
+      "version": "0bd3d19d09d3f83b10860ad93397224d327e2f67",
       "sum": "fQC1HY2iSTGfd4UfUE0nomf6NcRT+6xaVTDgwwRCrQc="
     },
     {
@@ -48,7 +48,7 @@
           "subdir": "grafana"
         }
       },
-      "version": "0db65aa79a959234109566044b33d76edb0ca9d8",
+      "version": "0bd3d19d09d3f83b10860ad93397224d327e2f67",
       "sum": "7rANfqY8ERvoABHbwoGsdGpUeHxxYCSVOcM4Eky4QtQ="
     },
     {
@@ -58,7 +58,7 @@
           "subdir": "jaeger-agent-mixin"
         }
       },
-      "version": "0db65aa79a959234109566044b33d76edb0ca9d8",
+      "version": "0bd3d19d09d3f83b10860ad93397224d327e2f67",
       "sum": "DsdBoqgx5kE3zc6fMYnfiGjW2+9Mx2OXFieWm1oFHgY="
     },
     {
@@ -68,7 +68,7 @@
           "subdir": "ksonnet-util"
         }
       },
-      "version": "0db65aa79a959234109566044b33d76edb0ca9d8",
+      "version": "0bd3d19d09d3f83b10860ad93397224d327e2f67",
       "sum": "JDsc/bUs5Yv1RkGKcm0hMteqCKZqemxA3qP6eiEATr8="
     },
     {
@@ -78,8 +78,8 @@
           "subdir": "loki-simple-scalable"
         }
       },
-      "version": "8d2f202400f20ff28a6d26faaee1c3503627ec27",
-      "sum": "QdVTb1RV6KOV5JmnyOr5Z3jipbjQnYEP5IL3L44On1A="
+      "version": "0dfdeb96f42f2050ba923b92dfdbf090d26569f4",
+      "sum": "788HNReqyKDNH7ARqwepctP7bqBAfawarD4jgK+2ugQ="
     },
     {
       "source": {
@@ -88,7 +88,7 @@
           "subdir": "memcached"
         }
       },
-      "version": "0db65aa79a959234109566044b33d76edb0ca9d8",
+      "version": "0bd3d19d09d3f83b10860ad93397224d327e2f67",
       "sum": "dTOeEux3t9bYSqP2L/uCuLo/wUDpCKH4w+4OD9fePUk="
     },
     {
@@ -98,8 +98,18 @@
           "subdir": "tanka-util"
         }
       },
-      "version": "0db65aa79a959234109566044b33d76edb0ca9d8",
+      "version": "0bd3d19d09d3f83b10860ad93397224d327e2f67",
       "sum": "AGgjH6IJe/1qwNtxFIiG8V1uyOJZascEydQsNrfPQ4c="
+    },
+    {
+      "source": {
+        "git": {
+          "remote": "https://github.com/grafana/loki.git",
+          "subdir": "production/ksonnet"
+        }
+      },
+      "version": "0afd113c966d8750c32a072fb94b861b294cbc7f",
+      "sum": "55M3a92TSMe0IaK20psF73jFiDV34m6JU3XNhcPAWWQ="
     },
     {
       "source": {

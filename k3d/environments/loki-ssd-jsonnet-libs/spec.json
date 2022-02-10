@@ -6,7 +6,7 @@
     "namespace": "environments/loki-ssd-jsonnet-libs/main.jsonnet"
   },
   "spec": {
-    "apiServer": "https://0.0.0.0:46617",
+    "apiServer": "https://0.0.0.0:41567",
     "namespace": "loki-ssd-jsonnet-libs",
     "resourceDefaults": {},
     "expectVersions": {}

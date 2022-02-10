@@ -54,6 +54,15 @@
         }
       },
       "version": "create-ssd-lib"
+    },
+    {
+      "source": {
+        "git": {
+          "remote": "https://github.com/grafana/loki.git",
+          "subdir": "production/ksonnet"
+        }
+      },
+      "version": "main"
     }
   ],
   "legacyImports": true
