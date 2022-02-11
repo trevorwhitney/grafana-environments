@@ -6,7 +6,7 @@
     "namespace": "environments/gel-ssd/main.jsonnet"
   },
   "spec": {
-    "apiServer": "https://0.0.0.0:41659",
+    "apiServer": "https://0.0.0.0:42629",
     "namespace": "gel-ssd",
     "resourceDefaults": {},
     "expectVersions": {}

@@ -14,7 +14,6 @@ local helm = tanka.helm.new(std.thisFile) {
     std.native('helmTemplate')(name, chart, conf { calledFrom: std.thisFile }),
 };
 
-
 local util = (import 'github.com/grafana/jsonnet-libs/ksonnet-util/util.libsonnet').withK(k) {
   withNonRootSecurityContext(uid, fsGroup=null)::
     { spec+: { template+: { spec+: { securityContext: {

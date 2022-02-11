@@ -83,7 +83,7 @@ local helm = tanka.helm.new(std.thisFile) {
         }
       },
       plugins: [
-        'https://storage.googleapis.com/plugins-community/grafana-enterprise-logs-app/release/2.2.0/grafana-enterprise-logs-app-2.2.0.zip;grafana-enterprise-logs-app',
+        'https://storage.googleapis.com/plugins-community/grafana-enterprise-logs-app/release/2.3.0/grafana-enterprise-logs-app-2.3.0.zip;grafana-enterprise-logs-app',
       ],
     },
     kubeVersion: 'v1.18.0',
