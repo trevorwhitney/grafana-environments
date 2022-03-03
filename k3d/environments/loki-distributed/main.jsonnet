@@ -28,6 +28,7 @@ grafana + prometheus + promtail + jaeger {
   local namespace = spec.namespace,
 
   _config+:: {
+    registry = error 'must provide $._config.registry for the gel image',
     clusterName: clusterName,
     gatewayName: gatewayName,
     gatewayHost: gatewayHost,
@@ -78,10 +79,9 @@ grafana + prometheus + promtail + jaeger {
   loki: helm.template($._config.clusterName, '../../charts/loki-distributed', {
     namespace: $._config.namespace,
     values: values {
-      local registry = 'k3d-grafana:45629',
       loki+: {
         image: {
-          registry: registry,
+          registry: $._config.registry,
           repository: 'loki',
           tag: 'latest',
           pullPolicy: 'Always',

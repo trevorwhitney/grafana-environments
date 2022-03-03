@@ -11,7 +11,8 @@ local promtail = import 'promtail/promtail.libsonnet';
 
 gelDistributed + grafana + prometheus + promtail + jaeger + provisioner {
   local namespace = spec.namespace,
-  local registry = 'k3d-grafana:45629',
+  //todo: parameterize this
+  local registry = 'k3d-grafana:41139',
   local clusterName = 'enterprise-logs-test-fixture',
   local normalizedClusterName = std.strReplace(clusterName, '-', '_'),
   local gatewayName = self.gel['service_%s_gateway' % normalizedClusterName].metadata.name,
@@ -39,10 +40,27 @@ gelDistributed + grafana + prometheus + promtail + jaeger + provisioner {
       },
       storage: {
         s3: {
-          s3: 's3://enterprise-logs:supersecret@enterprise-logs-test-fixture-minio.gel-distributed.svc:9000/enterprise-logs-admin',
+          s3: 's3://enterprise-logs:supersecret@enterprise-logs-test-fixture-minio:9000/enterprise-logs-admin',
           insecure: true,
         },
       },
+    },
+    license: {
+      path: "/etc/enterprise-logs/license/license.jwt",
+    },
+    # todo: need this for the distributor, but shouldn't
+    admin_client: {
+      storage: {
+        type: 's3',
+        s3: {
+          endpoint: "enterprise-logs-test-fixture-minio:9000",
+          bucket_name: "enterprise-logs-admin",
+        }
+      },
+    },
+    # todo: need this for the helm chart, but shouldn't
+    compactor: {
+      working_directory: '/data',
     },
     memberlist: {
       join_members: [
@@ -98,7 +116,7 @@ gelDistributed + grafana + prometheus + promtail + jaeger + provisioner {
   _images+: {
     provisioner: '%s/enterprise-metrics-provisioner' % registry,
     gel: {
-      registry: registry,
+      registry: $._config.registry,
       repository: 'enterprise-logs',
       tag: 'latest',
       pullPolicy: 'Always',
@@ -106,9 +124,11 @@ gelDistributed + grafana + prometheus + promtail + jaeger + provisioner {
   },
 
   _config+:: {
+    registry: registry,
     clusterName: 'enterprise-logs-test-fixture',
     gatewayName: gatewayName,
     gatewayHost: gatewayHost,
+    promtailLokiHost: gatewayHost,
     gelUrl: gatewayUrl,
     jaegerAgentName: jaegerAgentName,
     jaegerAgentPort: 6831,
@@ -166,7 +186,7 @@ gelDistributed + grafana + prometheus + promtail + jaeger + provisioner {
         '-cortex-url=' + gatewayUrl,
         '-token-file=/bootstrap/token',
 
-        '-instance=team-l',
+        '-tenant=team-l',
 
         '-access-policy=promtail-l:team-l:logs:write',
         '-access-policy=grafana-l:team-l:logs:read',

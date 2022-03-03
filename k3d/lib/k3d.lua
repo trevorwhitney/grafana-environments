@@ -8,7 +8,7 @@ local K3d = {}
 
 local function prepareRegistry()
 	local registryExists = shell.run_raw("k3d registry list | grep k3d-grafana > /dev/null")
-	if not registryExists then
+	if registryExists["status"] ~= 0 then
 		os.execute("k3d registry create grafana")
 	end
 end
@@ -83,11 +83,11 @@ function K3d:prepare()
 	self.registry_port = get_registry_port()
 end
 
-function K3d:build_provisioner_image(backend_enterprise_path)
+function K3d:build_provisioner_image(backend_enterprise_path, force)
 	local exists = shell.run_raw(
 		"docker image ls | grep k3d-grafana:" .. self.registry_port .. "/enterprise-metrics-provisioner"
 	)
-	if exists then
+	if exists["status"] == 0 and not force then
 		return
 	end
 
@@ -118,7 +118,7 @@ function K3d:build_gel_image(gel_path, force)
 	local exists = shell.run_raw(
 		"docker image ls | grep k3d-grafana:" .. self.registry_port .. "/enterprise-logs | grep latest"
 	)
-	if exists and not force then
+	if exists["status"] == 0 and not force then
 		return
 	end
 

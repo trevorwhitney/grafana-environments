@@ -6,20 +6,20 @@ local helm = tanka.helm.new(std.thisFile) {
     std.native('helmTemplate')(name, chart, conf { calledFrom: std.thisFile }),
 };
 {
-  local registry = 'k3d-grafana:45629',
   local prometheusAnnotations = { 'prometheus.io/scrape': 'true', 'prometheus.io/port': '3100' },
   local envVar = if std.objectHasAll(k.core.v1, 'envVar') then k.core.v1.envVar else k.core.v1.container.envType,
 
   _images+:: {
     gel: {
-          registry: registry,
-          repository: 'enterprise-logs',
-          tag: 'latest',
-          pullPolicy: 'Always',
-        }
+      registry: $._config.registry,
+      repository: 'enterprise-logs',
+      tag: 'latest',
+      pullPolicy: 'Always',
+    },
   },
 
   _config+:: {
+    registry: error 'must provide $._config.registry for gel image',
     namespace: error 'please provide $._config.namespace',
     clusterName: error 'please provide $._config.clusterName',
     jaegerAgentName: error 'plase provide $._config.jaegerAgentName',
@@ -83,15 +83,16 @@ local helm = tanka.helm.new(std.thisFile) {
         config: k.util.manifestYaml($._config.gel),
         'loki-distributed': {
           loki: {
-            image: {
-              registry: registry,
-              repository: 'enterprise-logs',
-              tag: 'latest',
-              pullPolicy: 'Always',
-            },
+            image: $._images.gel,
           },
           ingester: {
             replicas: 1,
+            persistence: {
+              enabled: true,
+              storageClass: 'local-path',
+            },
+          },
+          compactor: {
             persistence: {
               enabled: true,
               storageClass: 'local-path',
