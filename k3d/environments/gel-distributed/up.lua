@@ -15,7 +15,7 @@ local cluster = k3d.new(cluster_name, "gel-distributed", 3)
 
 cluster:prepare()
 
-local force_build = false
+local force_build = true
 cluster:build_provisioner_image(path(workspace .. "/grafana/backend-enterprise"), force_build)
 cluster:build_gel_image(path(workspace .. "/grafana/enterprise-logs"), force_build)
 

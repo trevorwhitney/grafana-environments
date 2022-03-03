@@ -6,7 +6,7 @@
     "namespace": "environments/gel-distributed/main.jsonnet"
   },
   "spec": {
-    "apiServer": "https://0.0.0.0:32903",
+    "apiServer": "https://0.0.0.0:43779",
     "namespace": "gel-distributed",
     "resourceDefaults": {},
     "expectVersions": {}
