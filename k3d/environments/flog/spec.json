@@ -1,0 +1,14 @@
+{
+  "apiVersion": "tanka.dev/v1alpha1",
+  "kind": "Environment",
+  "metadata": {
+    "name": "environments/flog",
+    "namespace": "environments/flog/main.jsonnet"
+  },
+  "spec": {
+    "apiServer": "https://api.crc.testing:6443",
+    "namespace": "flog",
+    "resourceDefaults": {},
+    "expectVersions": {}
+  }
+}

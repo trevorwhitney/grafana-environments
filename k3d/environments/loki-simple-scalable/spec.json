@@ -1,0 +1,14 @@
+{
+  "apiVersion": "tanka.dev/v1alpha1",
+  "kind": "Environment",
+  "metadata": {
+    "name": "environments/loki-simple-scalable",
+    "namespace": "environments/loki-simple-scalable/main.jsonnet"
+  },
+  "spec": {
+    "apiServer": "https://0.0.0.0:43165",
+    "namespace": "k3d-loki-simple-scalable",
+    "resourceDefaults": {},
+    "expectVersions": {}
+  }
+}

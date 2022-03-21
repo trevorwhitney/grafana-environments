@@ -1,0 +1,14 @@
+{
+  "apiVersion": "tanka.dev/v1alpha1",
+  "kind": "Environment",
+  "metadata": {
+    "name": "environments/enterprise-logs-simple",
+    "namespace": "environments/enterprise-logs-simple/main.jsonnet"
+  },
+  "spec": {
+    "apiServer": "https://0.0.0.0:42363",
+    "namespace": "k3d-enterprise-logs-simple",
+    "resourceDefaults": {},
+    "expectVersions": {}
+  }
+}
