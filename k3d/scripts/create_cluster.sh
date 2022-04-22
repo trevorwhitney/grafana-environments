@@ -22,4 +22,6 @@ if ! kubectl get namespaces | grep -q -m 1 "${namespace}"; then
 	kubectl create namespace "${namespace}" || true
 fi
 
+# Sleep for 5s to make sure the cluster is ready
+sleep 5
 tk apply "${environment}"

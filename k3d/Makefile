@@ -11,9 +11,6 @@ pbrennan-gel: update-repos secrets prepare-gel
 gel-distributed: update-repos secrets prepare-gel
 	$(CURDIR)/scripts/create_cluster.sh $(CURDIR)/environments/gel-distributed $(REGISTRY_PORT)
 
-gel-ssd: update-repos secrets prepare-gel
-	$(CURDIR)/scripts/create_cluster.sh $(CURDIR)/environments/gel-ssd $(REGISTRY_PORT)
-
 enterprise-logs-simple: update-repos secrets prepare-gel
 	$(CURDIR)/scripts/create_cluster.sh $(CURDIR)/environments/enterprise-logs-simple $(REGISTRY_PORT)
 
@@ -25,7 +22,7 @@ loki-simple-scalable: update-repos prepare-loki
 
 down:
 	k3d cluster delete gel-distributed
-	k3d cluster delete gel-ssd
+	k3d cluster delete enterprise-logs-simple
 	k3d cluster delete loki-distributed
 	k3d cluster delete loki-simple-scalable
 	k3d cluster delete pbrennan-gel
@@ -40,7 +37,7 @@ update-repos: add-repos
 	tk tool charts vendor
 	jb update
 
-secrets: secrets/grafana.jwt secrets/gem.jwt secrets/gel.jwt
+secrets: secrets/grafana.jwt secrets/gem.jwt secrets/gel.jwt secrets/secrets.json
 
 secrets/grafana.jwt:
 	op get document "grafana-license.jwt" > $(CURDIR)/secrets/grafana.jwt
@@ -50,6 +47,9 @@ secrets/gem.jwt:
 
 secrets/gel.jwt:
 	op get document "gel-license.jwt" > $(CURDIR)/secrets/gel.jwt
+
+secrets/secrets.json:
+	op get document "grafana-envs-secrets.json" > $(CURDIR)/secrets/secrets.json
 
 create-registry:
 	@if ! k3d registry list | grep -q -m 1 grafana; then \

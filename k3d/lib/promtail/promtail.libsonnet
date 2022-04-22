@@ -6,33 +6,41 @@ local helm = tanka.helm.new(std.thisFile) {
 };
 {
   _config+:: {
-    provisionerSecret: null,
     namespace: error 'please provide $._config.namespace',
-    promtailLokiHost: error 'please provide $._config.promtailLokiHost',
+    promtail: {
+      provisionerSecret: null,
+      cloudLokiAddress: null,
+      promtailLokiHost: error 'please provide $._config.promtailLokiHost',
+    },
   },
 
   promtail: helm.template('promtail', '../../charts/promtail', {
     namespace: $._config.namespace,
     values: {
       extraArgs: ['--config.expand-env=true'],
-      extraEnv: if $._config.provisionerSecret == null then [] else [{
+      extraEnv: if $._config.promtail.provisionerSecret == null then [] else [{
         name: 'PROVISIONING_TOKEN_PROMTAIL_L',
         valueFrom: {
-          secretKeyRef: { name: $._config.provisionerSecret, key: 'token-promtail-l' },
+          secretKeyRef: { name: $._config.promtail.provisionerSecret, key: 'token-promtail-l' },
         },
       }],
 
-      local lokiAddress = if $._config.provisionerSecret == null then
+      local lokiAddress = if $._config.promtail.provisionerSecret == null then
         'http://%s/loki/api/v1/push' else
         'http://team-l:${PROVISIONING_TOKEN_PROMTAIL_L}@%s/loki/api/v1/push',
 
       config: {
-        lokiAddress: lokiAddress % $._config.promtailLokiHost,
+        lokiAddress: lokiAddress % $._config.promtail.promtailLokiHost,
+        snippets: if $._config.promtail.cloudLokiAddress == null then {} else {
+          extraClientConfigs: [
+            { url: $._config.promtail.cloudLokiAddress },
+          ],
+        },
       },
       initContainer: {
         enabled: true,
         fsInotifyMaxUserInstances: 256,
-      }
+      },
     },
     kubeVersion: 'v1.18.0',
     noHooks: false,

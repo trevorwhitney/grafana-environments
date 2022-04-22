@@ -7,8 +7,6 @@ repositories:
 - name: minio
   url: https://helm.min.io
 requires:
-- chart: grafana/promtail
-  version: 3.8.1
 - chart: grafana/grafana
   version: 6.20.1
 - chart: prometheus-community/prometheus

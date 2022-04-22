@@ -10,11 +10,11 @@ local helm = tanka.helm.new(std.thisFile) {
     jaegerAgentName: error 'please provide $._config.jaegerAgentName',
     jaegerAgentPort: 6831,
     namespace: error 'plase provide $._config.namespace',
-    provisionerSecret: error 'please provide $._config.provisionerSecret',
     provisioningDir: '/etc/grafana/provisioning',
     gelUrl: error 'please provide $._config.gelUrl',
     grafana: {
       datasources: [],
+      provisionerSecret: error 'please provide $._config.provisionerSecret',
     },
   },
 
@@ -80,7 +80,7 @@ local helm = tanka.helm.new(std.thisFile) {
         },
         paths: {
           provisioning: $._config.provisioningDir,
-        }
+        },
       },
       plugins: [
         'https://storage.googleapis.com/plugins-community/grafana-enterprise-logs-app/release/2.3.0/grafana-enterprise-logs-app-2.3.0.zip;grafana-enterprise-logs-app',
@@ -101,7 +101,7 @@ local helm = tanka.helm.new(std.thisFile) {
         {
           name: 'PROVISIONING_TOKEN_GRAFANA_L',
           valueFrom: {
-            secretKeyRef: { name: $._config.provisionerSecret, key: 'token-grafana-l' },
+            secretKeyRef: { name: $._config.grafana.provisionerSecret, key: 'token-grafana-l' },
           },
         },
       ]),
