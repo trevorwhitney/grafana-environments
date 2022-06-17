@@ -5,8 +5,8 @@ local jaeger = import 'jaeger/jaeger.libsonnet';
 local minio = import 'minio/minio.libsonnet';
 
 local grafana = import 'grafana-loki/grafana.libsonnet';
-local prometheus = import 'prometheus/prometheus.libsonnet';
-local promtail = import 'promtail/promtail.libsonnet';
+local prometheus = import 'kube-prometheus-stack/kube-prometheus-stack.libsonnet';
+local agentOperator = import 'agent-operator/agent-operator.libsonnet';
 
 local helm = tanka.helm.new(std.thisFile) {
   template(name, chart, conf={})::
@@ -17,17 +17,17 @@ local clusterName = 'loki-simple-scalable';
 local normalizedClusterName = std.strReplace(clusterName, '-', '_');
 local registry = 'k3d-grafana:41139';
 
-grafana + prometheus + promtail + jaeger + minio + {
-  // local gatewayName = self.loki.service_loki_simple_scalable_gateway.metadata.name,
-  local gatewayName = '%s-gateway' % clusterName,
+grafana + prometheus + agentOperator + jaeger + minio + {
+  local gatewayName = self.loki.service_loki_gateway.metadata.name,
   local gatewayHost = '%s' % gatewayName,
   local gatewayUrl = 'http://%s' % gatewayHost,
   local jaegerQueryName = self.jaeger.query_service.metadata.name,
   local jaegerQueryUrl = 'http://%s' % jaegerQueryName,
   local jaegerAgentName = self.jaeger.agent_service.metadata.name,
   local jaegerAgentUrl = 'http://%s' % jaegerAgentName,
-  local prometheusServerName = self.prometheus.service_prometheus_server.metadata.name,
-  local prometheusUrl = 'http://%s' % prometheusServerName,
+  local prometheusServerName = self.kubePrometheusStack.service_prometheus_kube_prometheus_prometheus.metadata.name,
+  local prometheusUrl = 'http://%s:9090' % prometheusServerName,
+  local agentOperatorSA = self.agentOperator.service_account_agent_operator_grafana_agent_operator.metadata.name,
   local namespace = spec.namespace,
 
   _config+:: {
@@ -39,24 +39,32 @@ grafana + prometheus + promtail + jaeger + minio + {
     jaegerAgentName: jaegerAgentName,
     jaegerAgentPort: 6831,
     namespace: namespace,
+    promtail+: {
+      promtailLokiHost: gatewayHost,
+    },
 
     grafana+: {
+      dashboardsConfigMaps: [
+        'loki-dashboards-1',
+        'loki-dashboards-2',
+      ],
       datasources: [
         {
-          name: 'Prometheus',
+          name: 'prometheus',
           type: 'prometheus',
           access: 'proxy',
           url: prometheusUrl,
         },
         {
-          name: 'Jaeger',
+          name: 'jaeger',
           type: 'jaeger',
           access: 'proxy',
           url: jaegerQueryUrl,
           uid: 'jaeger_uid',
         },
+        //TODO: should expose this via configmap
         {
-          name: 'Loki',
+          name: 'loki',
           type: 'loki',
           access: 'proxy',
           url: gatewayUrl,
@@ -91,25 +99,43 @@ grafana + prometheus + promtail + jaeger + minio + {
     },
   },
 
-  local config = import './values/config.libsonnet',
-  local values = (import './values/values.libsonnet').lokiValues(k.util.manifestYaml(config)),
-
   loki: helm.template($._config.clusterName, '../../charts/loki-simple-scalable', {
     namespace: $._config.namespace,
-    values: values {
+    values: {
       loki+: {
+        auth_enabled: false,
         image: {
           registry: $._config.registry,
           repository: 'loki',
           tag: 'latest',
           pullPolicy: 'Always',
         },
+        storage: {
+          bucketNames: {
+            chunks: 'loki-data',
+            ruler: 'loki-rules',
+          },
+          type: 's3',
+          s3: {
+            s3: 's3://loki:supersecret@minio:9000/loki-data',
+            //Must require endpoint since minio doesn't follow s3 standards
+            endpoint: 'minio:9000',
+            s3ForcePathStyle: true,
+            insecure: true,
+          },
+        },
+      },
+      monitoring: {
+        serviceMonitor: {
+          //TODO: this is required because of the service monitor selector match labels
+          // from kube-prometheus-stack. Should we make this something loki specific?
+          labels: { release: 'prometheus' },
+        },
       },
     },
   }) + {
-    ['stateful_set_loki_simple_scalable_%s' % [name]]+:
-      k.apps.v1.statefulSet.mapContainers($._addJaegerEnvVars) +
-      k.apps.v1.statefulSet.spec.template.metadata.withAnnotations($._prometheusAnnotations)
+    ['stateful_set_loki_%s' % [name]]+:
+      k.apps.v1.statefulSet.mapContainers($._addJaegerEnvVars)
     for name in [
       'read',
       'write',

@@ -6,7 +6,7 @@
     "namespace": "environments/enterprise-logs-simple/main.jsonnet"
   },
   "spec": {
-    "apiServer": "https://0.0.0.0:36319",
+    "apiServer": "https://0.0.0.0:33637",
     "namespace": "k3d-enterprise-logs-simple",
     "resourceDefaults": {},
     "expectVersions": {}

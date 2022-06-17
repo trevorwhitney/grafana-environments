@@ -9,8 +9,12 @@ repositories:
 requires:
 - chart: grafana/grafana
   version: 6.20.1
+- chart: grafana/grafana-agent-operator
+  version: 0.2.0
 - chart: prometheus-community/prometheus
   version: 15.0.1
+- chart: prometheus-community/kube-prometheus-stack
+  version: 36.0.1
 - chart: minio/minio
   version: 8.0.10
 - chart: grafana/loki-distributed

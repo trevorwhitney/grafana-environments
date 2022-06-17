@@ -21,7 +21,7 @@ local normalizedClusterName = std.strReplace(clusterName, '-', '_');
 local registry = 'k3d-grafana:41139';
 
 grafana + prometheus + promtail + jaeger + provisioner + {
-  local gatewayName = self.enterprise_logs_simple["service_%s_gateway" % normalizedClusterName].metadata.name,
+  local gatewayName = self.enterprise_logs_simple['service_%s_gateway' % normalizedClusterName].metadata.name,
   // local gatewayName = '%s-gateway' % clusterName,
   local gatewayHost = '%s' % gatewayName,
   local gatewayUrl = 'http://%s' % gatewayHost,
@@ -127,41 +127,37 @@ grafana + prometheus + promtail + jaeger + provisioner + {
     },
   },
 
-  enterprise_logs_simple: helm.template($._config.clusterName, '../../charts/enterprise-logs-simple', {
+  enterprise_logs_simple: helm.template($._config.clusterName, '../../charts/loki-simple-scalable', {
     namespace: $._config.namespace,
     values: {
-      license: {
-        contents: importstr '../../secrets/gel.jwt',
+      loki+: {
+        image: $._images.gel,
       },
-      image: $._images.gel,
+      enterprise: {
+        enabled: true,
+        license: {
+          contents: importstr '../../secrets/gel.jwt',
+        },
+      },
+      minio: {
+        enabled: true,
+      },
       tokengen: {
         adminTokenSecret: $._config.adminToken,
         extraArgs: ['-cluster-name=%s' % licenseClusterName],
       },
-      'loki-simple-scalable'+: {
-        loki+: {
-          image: {
-            registry: registry,
-            repository: 'enterprise-logs',
-            tag: 'latest',
-            pullPolicy: 'Always',
-          },
+      read: {
+        extraArgs: [
+          '-cluster-name=%s' % licenseClusterName,
+        ],
+        persistence: {
+          storageClass: 'local-path',
         },
-        read: {
-          extraArgs: [
-            '-cluster-name=%s' % licenseClusterName,
-            '-log.level=debug',
-            '-print-config-stderr',
-          ],
-          persistence: {
-            storageClass: 'local-path',
-          },
-        },
-        write: {
-          extraArgs: ['-cluster-name=%s' % licenseClusterName],
-          persistence: {
-            storageClass: 'local-path',
-          },
+      },
+      write: {
+        extraArgs: ['-cluster-name=%s' % licenseClusterName],
+        persistence: {
+          storageClass: 'local-path',
         },
       },
     },

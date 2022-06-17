@@ -4,21 +4,11 @@
     {
       "source": {
         "git": {
-          "remote": "https://github.com/grafana/cortex-jsonnet.git",
-          "subdir": "cortex"
-        }
-      },
-      "version": "acbe9614c51e2020930901d1b9f3ef33c527409c",
-      "sum": "maEEiq7pOZVlyQgwFdjujsDP3f4q5wGLna8X89s0DQg="
-    },
-    {
-      "source": {
-        "git": {
           "remote": "https://github.com/grafana/jsonnet-libs.git",
           "subdir": "consul"
         }
       },
-      "version": "98c3060877aa178f6bdfc6ac618fbe0043fc3de7",
+      "version": "1ddfda8ac51edb0adc38516b9a2435d6abcfc9f0",
       "sum": "Po3c1Ic96ngrJCtOazic/7OsLkoILOKZWXWyZWl+od8="
     },
     {
@@ -28,8 +18,8 @@
           "subdir": "enterprise-metrics"
         }
       },
-      "version": "98c3060877aa178f6bdfc6ac618fbe0043fc3de7",
-      "sum": "zBjtNmnhfGlOHX0yOQIkaN8qX0LymfUkbj5yEG9EakQ="
+      "version": "1ddfda8ac51edb0adc38516b9a2435d6abcfc9f0",
+      "sum": "hi2ZpHKl7qWXmSZ46sAycjWEQK6oGsoECuDKQT1dA+k="
     },
     {
       "source": {
@@ -38,7 +28,7 @@
           "subdir": "etcd-operator"
         }
       },
-      "version": "98c3060877aa178f6bdfc6ac618fbe0043fc3de7",
+      "version": "1ddfda8ac51edb0adc38516b9a2435d6abcfc9f0",
       "sum": "fQC1HY2iSTGfd4UfUE0nomf6NcRT+6xaVTDgwwRCrQc="
     },
     {
@@ -48,8 +38,8 @@
           "subdir": "grafana"
         }
       },
-      "version": "98c3060877aa178f6bdfc6ac618fbe0043fc3de7",
-      "sum": "7rANfqY8ERvoABHbwoGsdGpUeHxxYCSVOcM4Eky4QtQ="
+      "version": "1ddfda8ac51edb0adc38516b9a2435d6abcfc9f0",
+      "sum": "Y5nheroSOIwmE+djEVPq4OvvTxKenzdHhpEwaR3Ebjs="
     },
     {
       "source": {
@@ -58,8 +48,8 @@
           "subdir": "jaeger-agent-mixin"
         }
       },
-      "version": "98c3060877aa178f6bdfc6ac618fbe0043fc3de7",
-      "sum": "DsdBoqgx5kE3zc6fMYnfiGjW2+9Mx2OXFieWm1oFHgY="
+      "version": "1ddfda8ac51edb0adc38516b9a2435d6abcfc9f0",
+      "sum": "nsukyr2SS8h97I2mxvBazXZp2fxu1i6eg+rKq3/NRwY="
     },
     {
       "source": {
@@ -68,7 +58,7 @@
           "subdir": "ksonnet-util"
         }
       },
-      "version": "98c3060877aa178f6bdfc6ac618fbe0043fc3de7",
+      "version": "1ddfda8ac51edb0adc38516b9a2435d6abcfc9f0",
       "sum": "xo1A7iYvJ7OZ64q2dOZY0G8FGHHt+t/+vEJW3bnXHyk="
     },
     {
@@ -88,8 +78,8 @@
           "subdir": "memcached"
         }
       },
-      "version": "98c3060877aa178f6bdfc6ac618fbe0043fc3de7",
-      "sum": "dTOeEux3t9bYSqP2L/uCuLo/wUDpCKH4w+4OD9fePUk="
+      "version": "1ddfda8ac51edb0adc38516b9a2435d6abcfc9f0",
+      "sum": "8hXTN4QOMkpad75LESkdfRD4/Sl81fMqZcD0ZPx2SNc="
     },
     {
       "source": {
@@ -98,7 +88,7 @@
           "subdir": "tanka-util"
         }
       },
-      "version": "98c3060877aa178f6bdfc6ac618fbe0043fc3de7",
+      "version": "1ddfda8ac51edb0adc38516b9a2435d6abcfc9f0",
       "sum": "AGgjH6IJe/1qwNtxFIiG8V1uyOJZascEydQsNrfPQ4c="
     },
     {
@@ -108,8 +98,18 @@
           "subdir": "production/ksonnet"
         }
       },
-      "version": "a5921f791a1fac46dae1ce4c310599ae947e9c10",
-      "sum": "7FGsHbXskMOwxPlZgQTgBPXoXi6ukhsWqZyVsiIwPCE="
+      "version": "a1c72ad562229cbd5d9fcd0e1075f3e80a6a3745",
+      "sum": "6OdmNOwpIZ00+Txl+kPpSb+ivwLC+POJnG3XVIEgkkI="
+    },
+    {
+      "source": {
+        "git": {
+          "remote": "https://github.com/grafana/mimir.git",
+          "subdir": "operations/mimir"
+        }
+      },
+      "version": "99c90795b497ea372d0cdebfd0e6d69d23e1063e",
+      "sum": "MhA3qnMbcM4zi+hHPSrn+QbCoathsgcpzC2dDZy8C7I="
     },
     {
       "source": {
@@ -118,8 +118,8 @@
           "subdir": "doc-util"
         }
       },
-      "version": "fc3f9bca2dff836b0e924a993bdf11bc51af78d4",
-      "sum": "JUBWG9ybm0TlY3uCWrNoQS00BcfPlCvuK9jPFU0NIj8="
+      "version": "fedfb4920fae931a27190df0aeec5ef858daf3b5",
+      "sum": "fzESn29CRKzLap9jTpcUNSNBy7MzvzOxZo1LYWyIrGs="
     },
     {
       "source": {
@@ -128,8 +128,8 @@
           "subdir": "1.20"
         }
       },
-      "version": "4be83346f2c5b06a03cb8ee726ec66aab33a60bb",
-      "sum": "IY8IKdkESqEbJfnBLB5eKd77OiAq2np1RUA9E8zwWpA="
+      "version": "12ea89d1fa76e716565b2885492da3163e62dd90",
+      "sum": "Pp9RCh4EkWpmQ5GsgtgJvqFqpBPHoZufMaQ6ejY4EeE="
     }
   ],
   "legacyImports": false

@@ -71,3 +71,14 @@ build-latest-gel-image:
 	make -C $(CURDIR)/../../enterprise-logs enterprise-logs-image
 	docker tag us.gcr.io/kubernetes-dev/enterprise-logs:$(GEL_IMAGE_TAG) k3d-grafana:$(REGISTRY_PORT)/enterprise-logs:latest
 	docker push k3d-grafana:$(REGISTRY_PORT)/enterprise-logs:latest
+
+package-gel-plugin:
+	env_dir=$(CURDIR)
+	pushd "$(HOME)/workspace/grafana/gex-plugins" || exit 1
+	yarn
+	pushd plugins/grafana-enterprise-logs-app || exit 1
+	yarn build
+	zip gel-plugin.zip dist/ -r
+	cp gel-plugin.zip $env_dir/fixtures
+	popd || exit 1
+	popd || exit 1

@@ -22,6 +22,38 @@ if ! kubectl get namespaces | grep -q -m 1 "${namespace}"; then
 	kubectl create namespace "${namespace}" || true
 fi
 
+# Apply CRDs needed for prometheus operator
+prometheus_crd_base_url="https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.52.0/example/prometheus-operator-crd"
+for file in monitoring.coreos.com_alertmanagerconfigs.yaml \
+	monitoring.coreos.com_alertmanagers.yaml \
+	monitoring.coreos.com_podmonitors.yaml \
+	monitoring.coreos.com_probes.yaml \
+	monitoring.coreos.com_prometheuses.yaml \
+	monitoring.coreos.com_prometheusrules.yaml \
+	monitoring.coreos.com_servicemonitors.yaml \
+	monitoring.coreos.com_thanosrulers.yaml; do
+	kubectl apply \
+		-f "${prometheus_crd_base_url}/${file}" \
+		--force-conflicts=true \
+		--server-side
+done
+
+# Apply CRDs needed for grafana agent
+agent_crd_base_url="https://raw.githubusercontent.com/grafana/agent/main/production/operator/crds"
+for file in monitoring.coreos.com_podmonitors.yaml \
+	monitoring.coreos.com_probes.yaml \
+	monitoring.coreos.com_servicemonitors.yaml \
+	monitoring.grafana.com_grafanaagents.yaml \
+	monitoring.grafana.com_integrations.yaml \
+	monitoring.grafana.com_logsinstances.yaml \
+	monitoring.grafana.com_metricsinstances.yaml \
+	monitoring.grafana.com_podlogs.yaml; do
+	kubectl apply \
+		-f "${agent_crd_base_url}/${file}" \
+		--force-conflicts=true \
+		--server-side
+done
+
 # Sleep for 5s to make sure the cluster is ready
 sleep 5
 tk apply "${environment}"

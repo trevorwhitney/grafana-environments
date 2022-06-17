@@ -12,8 +12,9 @@ local helm = tanka.helm.new(std.thisFile) {
     namespace: error 'plase provide $._config.namespace',
     provisioningDir: '/etc/grafana/provisioning',
     lokiUrl: error 'please provide $._config.lokiUrl',
-    grafana: {
+    grafana+: {
       datasources: [],
+      dashboardsConfigMaps: [],
     },
   },
 
@@ -32,16 +33,15 @@ local helm = tanka.helm.new(std.thisFile) {
       testFramework: {
         enabled: false,
       },
+      serviceMonitor: {
+        enabled: true,
+      },
       env: {
         GF_AUTH_ANONYMOUS_ENABLED: true,
         GF_AUTH_ANONYMOUS_ORG_ROLE: 'Admin',
         GF_FEATURE_TOGGLES_ENABLE: 'ngalert',
         JAEGER_AGENT_PORT: 6831,
         JAEGER_AGENT_HOST: $._config.jaegerAgentName,
-      },
-      podAnnotations: {
-        'prometheus.io/scrape': 'true',
-        'prometheus.io/port': '3000',
       },
       datasources: {
         'datasources.yaml': {
@@ -57,10 +57,27 @@ local helm = tanka.helm.new(std.thisFile) {
         },
         paths: {
           provisioning: $._config.provisioningDir,
-        }
+        },
       },
-    },
+    } + if std.length($._config.grafana.dashboardsConfigMaps) > 0 then {
+      dashboardProviders: {
+        'loki.yaml': {
+          apiVersion: 1,
+          providers: std.map(function(provider) {
+            name: provider,
+            editable: true,
+            options: {
+              path: '/var/lib/grafana/dashboards/%s' % provider,
+            },
+          }, $._config.grafana.dashboardsConfigMaps),
+        },
+      },
+      dashboardsConfigMaps: {
+        [provider]: provider
+        for provider in $._config.grafana.dashboardsConfigMaps
+      },
+    } else {},
     kubeVersion: 'v1.18.0',
     noHooks: false,
-  })
+  }),
 }
