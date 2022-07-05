@@ -6,7 +6,7 @@
     "namespace": "environments/loki-simple-scalable/main.jsonnet"
   },
   "spec": {
-    "apiServer": "https://0.0.0.0:46407",
+    "apiServer": "https://0.0.0.0:42163",
     "namespace": "k3d-loki-simple-scalable",
     "resourceDefaults": {},
     "expectVersions": {}
