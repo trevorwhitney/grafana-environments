@@ -5,9 +5,6 @@ GEL_IMAGE_TAG := $(shell pushd ../../enterprise-logs/tools/ > /dev/null && ./ima
 LOKI_IMAGE_TAG := $(shell pushd ../../loki/tools/ > /dev/null && ./image-tag)
 REGISTRY_PORT ?= $(shell k3d registry list -o json | jq -r '.[] | select(.name == "k3d-grafana") | .portMappings."5000/tcp" | .[0].HostPort')
 
-pbrennan-gel: update-repos secrets prepare-gel
-	$(CURDIR)/scripts/create_cluster.sh $(CURDIR)/environments/pbrennan-gel $(REGISTRY_PORT)
-
 gel-distributed: update-repos secrets prepare-gel
 	$(CURDIR)/scripts/create_cluster.sh $(CURDIR)/environments/gel-distributed $(REGISTRY_PORT)
 
@@ -20,12 +17,15 @@ loki-distributed: update-repos prepare-loki
 loki-simple-scalable: update-repos prepare-loki
 	$(CURDIR)/scripts/create_cluster.sh $(CURDIR)/environments/loki-simple-scalable $(REGISTRY_PORT)
 
+loki-single-binary: update-repos prepare-loki
+	$(CURDIR)/scripts/create_cluster.sh $(CURDIR)/environments/loki-single-binary $(REGISTRY_PORT)
+
 down:
 	k3d cluster delete gel-distributed
 	k3d cluster delete enterprise-logs-simple
 	k3d cluster delete loki-distributed
 	k3d cluster delete loki-simple-scalable
-	k3d cluster delete pbrennan-gel
+	k3d cluster delete loki-single-binary
 
 add-repos:
 	helm repo add prometheus-community https://prometheus-community.github.io/helm-charts

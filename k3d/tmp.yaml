@@ -1,0 +1,12 @@
+---
+loki:
+  auth_enabled: false,
+  storage:
+    bucketNames:
+      chunks: "loki-data"
+      ruler: "loki-rules"
+    type: "s3"
+    s3:
+      s3: "s3://loki:supersecret@minio:9000/loki-data"
+      s3ForcePathStyle: true
+      insecure: true

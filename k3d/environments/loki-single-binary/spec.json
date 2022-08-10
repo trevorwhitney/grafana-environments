@@ -1,0 +1,14 @@
+{
+  "apiVersion": "tanka.dev/v1alpha1",
+  "kind": "Environment",
+  "metadata": {
+    "name": "environments/loki-single-binary",
+    "namespace": "environments/loki-single-binary/main.jsonnet"
+  },
+  "spec": {
+    "apiServer": "https://0.0.0.0:36333",
+    "namespace": "k3d-loki-single-binary",
+    "resourceDefaults": {},
+    "expectVersions": {}
+  }
+}

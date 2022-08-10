@@ -12,14 +12,14 @@ local helm = tanka.helm.new(std.thisFile) {
     std.native('helmTemplate')(name, chart, conf { calledFrom: std.thisFile }),
 };
 
-local clusterName = 'loki-simple-scalable';
+local clusterName = 'loki-single-binary';
 local normalizedClusterName = std.strReplace(clusterName, '-', '_');
 local registry = 'k3d-grafana:41139';
 
 grafana + prometheus + jaeger + minio + {
-  local gatewayName = self.loki.service_loki_gateway.metadata.name,
+  local gatewayName = self.loki.service_loki_single_binary.metadata.name,
   local gatewayHost = '%s' % gatewayName,
-  local gatewayUrl = 'http://%s' % gatewayHost,
+  local gatewayUrl = 'http://%s:3100' % gatewayHost,
   local jaegerQueryName = self.jaeger.query_service.metadata.name,
   local jaegerQueryUrl = 'http://%s' % jaegerQueryName,
   local jaegerAgentName = self.jaeger.agent_service.metadata.name,
@@ -43,10 +43,6 @@ grafana + prometheus + jaeger + minio + {
     },
 
     grafana+: {
-      dashboardsConfigMaps: [
-        'loki-dashboards-1',
-        'loki-dashboards-2',
-      ],
       datasources: [
         {
           name: 'prometheus',
@@ -103,6 +99,7 @@ grafana + prometheus + jaeger + minio + {
     values: {
       loki+: {
         auth_enabled: false,
+        deploymentMode: 'single-binary',
         image: {
           registry: $._config.registry,
           repository: 'loki',
@@ -136,8 +133,7 @@ grafana + prometheus + jaeger + minio + {
     ['stateful_set_loki_%s' % [name]]+:
       k.apps.v1.statefulSet.mapContainers($._addJaegerEnvVars)
     for name in [
-      'read',
-      'write',
+      'single_binary',
     ]
   },
 }
