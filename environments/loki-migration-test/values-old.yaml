@@ -1,0 +1,5 @@
+---
+auth_enabled: false
+persistence:
+  enabled: true
+

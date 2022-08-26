@@ -20,12 +20,20 @@ loki-simple-scalable: update-repos prepare-loki
 loki-single-binary: update-repos prepare-loki
 	$(CURDIR)/scripts/create_cluster.sh $(CURDIR)/environments/loki-single-binary $(REGISTRY_PORT)
 
+loki-migration-test: update-repos
+	$(CURDIR)/scripts/create_cluster.sh $(CURDIR)/environments/loki-migration-test $(REGISTRY_PORT)
+
+loki-origin-hackathon: update-repos
+	$(CURDIR)/scripts/create_cluster.sh $(CURDIR)/environments/loki-origin-hackathon $(REGISTRY_PORT)
+
 down:
 	k3d cluster delete gel-distributed
 	k3d cluster delete enterprise-logs-simple
 	k3d cluster delete loki-distributed
 	k3d cluster delete loki-simple-scalable
 	k3d cluster delete loki-single-binary
+	k3d cluster delete loki-migration-test
+	k3d cluster delete loki-origin-hackathon
 
 add-repos:
 	helm repo add prometheus-community https://prometheus-community.github.io/helm-charts

@@ -8,7 +8,7 @@
           "subdir": "consul"
         }
       },
-      "version": "3869c4e8cd471c8020e260561e874829e268c85b",
+      "version": "c132c4afcf17491718539db4c2d94c0ea4346120",
       "sum": "Po3c1Ic96ngrJCtOazic/7OsLkoILOKZWXWyZWl+od8="
     },
     {
@@ -18,7 +18,7 @@
           "subdir": "enterprise-metrics"
         }
       },
-      "version": "3869c4e8cd471c8020e260561e874829e268c85b",
+      "version": "c132c4afcf17491718539db4c2d94c0ea4346120",
       "sum": "hi2ZpHKl7qWXmSZ46sAycjWEQK6oGsoECuDKQT1dA+k="
     },
     {
@@ -28,7 +28,7 @@
           "subdir": "etcd-operator"
         }
       },
-      "version": "3869c4e8cd471c8020e260561e874829e268c85b",
+      "version": "c132c4afcf17491718539db4c2d94c0ea4346120",
       "sum": "duHm6wmUju5KHQurOe6dnXoKgl5gTUsfGplgbmAOsHw="
     },
     {
@@ -38,7 +38,7 @@
           "subdir": "grafana"
         }
       },
-      "version": "3869c4e8cd471c8020e260561e874829e268c85b",
+      "version": "c132c4afcf17491718539db4c2d94c0ea4346120",
       "sum": "Y5nheroSOIwmE+djEVPq4OvvTxKenzdHhpEwaR3Ebjs="
     },
     {
@@ -48,7 +48,7 @@
           "subdir": "jaeger-agent-mixin"
         }
       },
-      "version": "3869c4e8cd471c8020e260561e874829e268c85b",
+      "version": "c132c4afcf17491718539db4c2d94c0ea4346120",
       "sum": "nsukyr2SS8h97I2mxvBazXZp2fxu1i6eg+rKq3/NRwY="
     },
     {
@@ -58,7 +58,7 @@
           "subdir": "ksonnet-util"
         }
       },
-      "version": "3869c4e8cd471c8020e260561e874829e268c85b",
+      "version": "c132c4afcf17491718539db4c2d94c0ea4346120",
       "sum": "2++XoPslyz02LRgsxREWxjLgYgiCIqhAtXCyVSvYcoE="
     },
     {
@@ -78,7 +78,7 @@
           "subdir": "memcached"
         }
       },
-      "version": "3869c4e8cd471c8020e260561e874829e268c85b",
+      "version": "c132c4afcf17491718539db4c2d94c0ea4346120",
       "sum": "8hXTN4QOMkpad75LESkdfRD4/Sl81fMqZcD0ZPx2SNc="
     },
     {
@@ -88,7 +88,7 @@
           "subdir": "tanka-util"
         }
       },
-      "version": "3869c4e8cd471c8020e260561e874829e268c85b",
+      "version": "c132c4afcf17491718539db4c2d94c0ea4346120",
       "sum": "ShSIissXdvCy1izTCDZX6tY7qxCoepE5L+WJ52Hw7ZQ="
     },
     {
@@ -98,8 +98,8 @@
           "subdir": "production/ksonnet"
         }
       },
-      "version": "46ae0efc0f2434bc0fd8f1389a75a532109d2aba",
-      "sum": "2FXAAr47lsGjOg9swSWtKreZ/RX/FlNU1U40loYlSAA="
+      "version": "e15da437f09ecd698ecd9a303546ff4cfa3adbe2",
+      "sum": "LZwcdU/v7sH+v9YdbqepahCvvJ3r4tY39N16emrmGIc="
     },
     {
       "source": {

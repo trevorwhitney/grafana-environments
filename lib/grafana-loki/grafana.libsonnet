@@ -15,6 +15,7 @@ local helm = tanka.helm.new(std.thisFile) {
     grafana+: {
       datasources: [],
       dashboardsConfigMaps: [],
+      extraVolumeMounts: []
     },
   },
 

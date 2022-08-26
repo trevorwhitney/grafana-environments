@@ -9,6 +9,7 @@ namespace="k3d-${cluster_name}"
 k3d cluster create "${cluster_name}" \
 	--servers 1 \
 	--agents 3 \
+  --volume /home/twhitney/workspace/grafana/gex-plugins/plugins/grafana-enterprise-logs-app:/var/lib/grafana/plugins/grafana-enterprise-logs-app \
 	--registry-use "k3d-grafana:${registry_port}" \
 	--wait || true
 

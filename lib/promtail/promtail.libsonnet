@@ -30,7 +30,11 @@ local helm = tanka.helm.new(std.thisFile) {
         'http://team-l:${PROVISIONING_TOKEN_PROMTAIL_L}@%s/loki/api/v1/push',
 
       config: {
-        lokiAddress: lokiAddress % $._config.promtail.promtailLokiHost,
+        clients: [
+          {
+            url: lokiAddress % $._config.promtail.promtailLokiHost,
+          },
+        ],
         snippets: if $._config.promtail.cloudLokiAddress == null then {} else {
           extraClientConfigs: [
             { url: $._config.promtail.cloudLokiAddress },
