@@ -1,0 +1,13 @@
+---
+loki:
+  auth_enabled: false
+  storage:
+    bucketNames:
+      chunks: "loki-data"
+      ruler: "loki-rules"
+    type: "s3"
+    s3:
+      s3: "s3://loki:supersecret@minio.k3d-loki-migration-test.svc.cluster.local:9000/loki-data"
+      endpoint: "minio.k3d-loki-migration-test.svc.cluster.local:9000"
+      s3ForcePathStyle: true
+      insecure: true

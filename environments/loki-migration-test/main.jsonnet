@@ -19,7 +19,7 @@ local clusterName = 'loki-migration-test';
 local normalizedClusterName = std.strReplace(clusterName, '-', '_');
 local registry = 'k3d-grafana:41139';
 
-grafana + prometheus + jaeger + promtail {
+minio + grafana + prometheus + jaeger + promtail {
   local lokiOld = helm.template($._config.clusterName, '../../charts/loki-old', {
     namespace: $._config.namespace,
     values: {
@@ -46,7 +46,7 @@ grafana + prometheus + jaeger + promtail {
         commonConfig: {
           replication_factor: 1,
         },
-        deploymentMode: "single-binary",
+        deploymentMode: 'single-binary',
         storage: {
           type: 'filesystem',
         },
@@ -59,7 +59,7 @@ grafana + prometheus + jaeger + promtail {
           enabled: false,
           grafanaAgent: {
             installOperator: false,
-          }
+          },
         },
       },
     },
@@ -90,6 +90,23 @@ grafana + prometheus + jaeger + promtail {
     namespace: namespace,
     promtail+: {
       promtailLokiHost: '%s:3100' % gatewayHost,
+    },
+
+    minio: {
+      buckets: [
+        {
+          name: 'loki-data',
+          policy: 'none',
+          purge: false,
+        },
+        {
+          name: 'loki-rules',
+          policy: 'none',
+          purge: false,
+        },
+      ],
+      accessKey: 'loki',
+      secretKey: 'supersecret',
     },
 
     grafana+: {
