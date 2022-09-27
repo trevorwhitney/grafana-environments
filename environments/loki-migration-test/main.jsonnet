@@ -68,9 +68,11 @@ minio + grafana + prometheus + jaeger + promtail {
 
   local useNewLoki = true,
 
-  local gatewayName = '%s' % if useNewLoki then lokiNewGatewayName else lokiOldGatewayName,
+  // local gatewayName = '%s' % if useNewLoki then lokiNewGatewayName else lokiOldGatewayName,
+  local gatewayName = "loki-loki-distributed-gateway.loki.svc.cluster.local",
   local gatewayHost = '%s' % gatewayName,
-  local gatewayUrl = 'http://%s:3100' % gatewayHost,
+  // local gatewayUrl = 'http://%s:3100' % gatewayHost,
+  local gatewayUrl = 'http://%s' % gatewayHost,
   local jaegerQueryName = self.jaeger.query_service.metadata.name,
   local jaegerQueryUrl = 'http://%s' % jaegerQueryName,
   local jaegerAgentName = self.jaeger.agent_service.metadata.name,
@@ -89,7 +91,8 @@ minio + grafana + prometheus + jaeger + promtail {
     jaegerAgentPort: 6831,
     namespace: namespace,
     promtail+: {
-      promtailLokiHost: '%s:3100' % gatewayHost,
+      // promtailLokiHost: '%s:3100' % gatewayHost,
+      promtailLokiHost: '%s' % gatewayHost,
     },
 
     minio: {
