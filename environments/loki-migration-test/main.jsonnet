@@ -7,72 +7,21 @@ local minio = import 'minio/minio.libsonnet';
 local grafana = import 'grafana-loki/grafana.libsonnet';
 local prometheus = import 'kube-prometheus-stack/kube-prometheus-stack.libsonnet';
 
-
 local promtail = import 'promtail/promtail.libsonnet';
+local canary = import 'canary/canary.libsonnet';
 
-local helm = tanka.helm.new(std.thisFile) {
-  template(name, chart, conf={})::
-    std.native('helmTemplate')(name, chart, conf { calledFrom: std.thisFile }),
-};
-
+local helm = tanka.helm.new(std.thisFile);
 local clusterName = 'loki-migration-test';
 local normalizedClusterName = std.strReplace(clusterName, '-', '_');
 local registry = 'k3d-grafana:41139';
 
-minio + grafana + prometheus + jaeger + promtail {
-  local lokiOld = helm.template($._config.clusterName, '../../charts/loki-old', {
-    namespace: $._config.namespace,
-    values: {
-      tracing: {
-        jaegerAgentHost: jaegerAgentName,
-      },
-      config+: {
-        auth_enabled: false,
-        server: {
-          log_level: 'debug',
-        },
-      },
-    },
-  }),
-
-  local lokiOldGatewayName = lokiOld['service_%s' % normalizedClusterName].metadata.name,
-
-  local lokiNew = helm.template($._config.clusterName, '../../charts/loki', {
-    namespace: $._config.namespace,
-    values: {
-      upgradeFromV2: true,
-      loki+: {
-        auth_enabled: false,
-        commonConfig: {
-          replication_factor: 1,
-        },
-        deploymentMode: 'single-binary',
-        storage: {
-          type: 'filesystem',
-        },
-      },
-      monitoring: {
-        dashboards: {
-          enabled: false,
-        },
-        selfMonitoring: {
-          enabled: false,
-          grafanaAgent: {
-            installOperator: false,
-          },
-        },
-      },
-    },
-  }),
-  local lokiNewGatewayName = lokiNew.service_loki.metadata.name,
-
-  local useNewLoki = true,
-
-  // local gatewayName = '%s' % if useNewLoki then lokiNewGatewayName else lokiOldGatewayName,
-  local gatewayName = "loki-loki-distributed-gateway.loki.svc.cluster.local",
+minio + grafana + prometheus + jaeger {
+  local gatewayName = 'loki-loki-distributed-gateway.loki.svc.cluster.local',
+  local newGatewayName = 'loki-loki-distributed-gateway.loki.svc.cluster.local',
   local gatewayHost = '%s' % gatewayName,
-  // local gatewayUrl = 'http://%s:3100' % gatewayHost,
+  local newGatewayHost = '%s' % newGatewayName,
   local gatewayUrl = 'http://%s' % gatewayHost,
+  local newGatewayUrl = 'http://%s' % newGatewayHost,
   local jaegerQueryName = self.jaeger.query_service.metadata.name,
   local jaegerQueryUrl = 'http://%s' % jaegerQueryName,
   local jaegerAgentName = self.jaeger.agent_service.metadata.name,
@@ -90,11 +39,6 @@ minio + grafana + prometheus + jaeger + promtail {
     jaegerAgentName: jaegerAgentName,
     jaegerAgentPort: 6831,
     namespace: namespace,
-    promtail+: {
-      // promtailLokiHost: '%s:3100' % gatewayHost,
-      promtailLokiHost: '%s' % gatewayHost,
-    },
-
     minio: {
       buckets: [
         {
@@ -128,7 +72,7 @@ minio + grafana + prometheus + jaeger + promtail {
           uid: 'jaeger_uid',
         },
         {
-          name: 'loki',
+          name: 'loki-old',
           type: 'loki',
           access: 'proxy',
           url: gatewayUrl,
@@ -143,9 +87,43 @@ minio + grafana + prometheus + jaeger + promtail {
             ],
           },
         },
+        {
+          name: 'loki-new-no-auth',
+          type: 'loki',
+          access: 'proxy',
+          url: 'http://loki-gateway.loki.svc.cluster.local',
+          jsonData: {
+            derivedFields: [
+              {
+                datasourceUid: 'jaeger_uid',
+                matcherRegex: 'traceID=(\\w+)',
+                name: 'TraceID',
+                url: '$${__value.raw}',
+              },
+            ],
+          },
+        },
+        {
+          name: 'loki-new-auth',
+          type: 'loki',
+          access: 'proxy',
+          url: 'http://loki-gateway.loki.svc.cluster.local',
+          jsonData: {
+            httpHeaderName1: 'X-Scope-OrgID',
+            derivedFields: [
+              {
+                datasourceUid: 'jaeger_uid',
+                matcherRegex: 'traceID=(\\w+)',
+                name: 'TraceID',
+                url: '$${__value.raw}',
+              },
+            ],
+          },
+          secureJsonData: {
+            httpHeaderValue1: 'self-monitoring',
+          },
+        },
       ],
     },
   },
-
-  // loki: if useNewLoki then lokiNew else lokiOld,
 }

@@ -1,0 +1,47 @@
+query:
+
+http://localhost:3000/explore?orgId=1&left=%5B%221664307900000%22,%221664308500000%22,%22loki-old%22,%7B%22refId%22:%22A%22,%22expr%22:%22%7Bnamespace%3D%5C%22loki%5C%22%7D%22%7D%5D
+
+## Upgrading from `grafana/loki-distributed`
+
+For script, should do promtail via helm cli as well
+
+1. Setup cluster, port forward grafana
+1. Update your existing promtail/agent scrape config to _exclude_ the new deployment.
+  * ./prepare-promtail.sh
+  * run helm upgrade
+  * watch k9s and wait until daemonset is updated
+1. Deploy `grafana/loki` alongside your existing deployment (in the same namespace)
+  * ./install-new.sh
+  * Make sure to use the same buckets
+  * Make sure to set the correct `migrate` values
+1. Confirm new and old logs are in the new deployment
+  * look for job="loki/promtail" in new deployment
+  * look for job="loki/loki-read" in the new deployment
+1. Confrim new logs are in the old deployment
+  * look for job="loki/loki-read" in the old deployment
+1. Convert all clients to send logs to and query from the new gateway
+  * ./switch-promtail.sh
+  * promtail
+    * look for promtail (job="loki/promtail") and old canary (pod=~"canary-loki-canary.*") in new cluster
+1. Tear down old canary (helm uninstall)
+  * helm uninstall -n loki canary
+1. Update distributed deployment to flush on shutdown
+  * ./prepare-distributed.sh
+    * set flush on shutdown to true
+    * turn on debug logging so we can see if it's flushing
+1. Scale ingesters down 1 at a time
+  * port forward distributor to watch the ring
+  * for each ingester
+    * scale stateful set down by 1
+    * wait for ring to be healthy (ie. killed ingester has fully left the ring)
+    * tail `{pod=~"loki-loki-distributed-ingester.*"} |= "flush"` to watch for flush debug logs
+1. Tear down the distributed deployment
+  * helm uninstall -n loki loki-distributed
+
+canary query:
+(
+  sum(increase(loki_canary_missing_entries_total{namespace="loki"}[$__range])) by (job) 
+  / 
+  sum(increase(loki_canary_entries_total{namespace="loki"}[$__range])) by (job)
+)*100

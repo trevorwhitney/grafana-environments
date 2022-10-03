@@ -11,6 +11,7 @@ local helm = tanka.helm.new(std.thisFile) {
       provisionerSecret: null,
       cloudLokiAddress: null,
       promtailLokiHost: error 'please provide $._config.promtailLokiHost',
+      extraRelabelConfigs: [],
     },
   },
 
@@ -35,16 +36,25 @@ local helm = tanka.helm.new(std.thisFile) {
             url: lokiAddress % $._config.promtail.promtailLokiHost,
           },
         ],
-        snippets: if $._config.promtail.cloudLokiAddress == null then {} else {
+        snippets: {
+          extraRelabelConfigs: $._config.promtail.extraRelabelConfigs,
+        } + if $._config.promtail.cloudLokiAddress == null then {} else {
           extraClientConfigs: [
             { url: $._config.promtail.cloudLokiAddress },
           ],
         },
       },
-      initContainer: {
-        enabled: true,
-        fsInotifyMaxUserInstances: 256,
-      },
+      initContainer: [
+        {
+          name: 'init',
+          image: 'docker.io/busybox:1.33',
+          imagePullPolicy: 'IfNotPresent',
+          command: ['sh', '-c', 'sysctl -w fs.inotify.max_user_instances=1024'],
+          securityContext: {
+            privileged: true,
+          },
+        },
+      ],
     },
     kubeVersion: 'v1.18.0',
     noHooks: false,

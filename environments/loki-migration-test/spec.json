@@ -6,7 +6,7 @@
     "namespace": "environments/loki-migration-test/main.jsonnet"
   },
   "spec": {
-    "apiServer": "https://0.0.0.0:34355",
+    "apiServer": "https://0.0.0.0:44117",
     "namespace": "k3d-loki-migration-test",
     "resourceDefaults": {},
     "expectVersions": {}

@@ -1,4 +1,8 @@
 ---
+serviceMonitor:
+  enabled: true
+  labels:
+    release: 'prometheus'
 loki:
   config: |
     auth_enabled: false
@@ -12,7 +16,7 @@ loki:
 
     common:
       path_prefix: /var/loki
-      replication_factor: 1
+      replication_factor: 3
       storage:
         s3:
           endpoint: minio.k3d-loki-migration-test.svc.cluster.local:9000
@@ -82,3 +86,8 @@ loki:
       storage:
         s3:
           bucketnames: loki-rules
+
+ingester:
+  replicas: 3
+querier:
+  replicas: 3

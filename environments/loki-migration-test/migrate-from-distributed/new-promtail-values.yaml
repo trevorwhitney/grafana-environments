@@ -1,0 +1,23 @@
+---
+extraArgs:
+  - "--config.expand-env=true"
+config:
+  clients:
+    - url: "http://loki-loki-distributed-gateway.loki.svc.cluster.local/loki/api/v1/push"
+  snippets:
+    extraRelabelConfigs:
+      - source_labels:
+          - "__meta_kubernetes_pod_label_app_kubernetes_io_component"
+        regex: "(canary|read|write)"
+        action: "drop"
+initContainer:
+  - name: "init"
+    image: "docker.io/busybox:1.33"
+    imagePullPolicy: "IfNotPresent"
+    command:
+      - "sh"
+      - "-c"
+      - |
+        sysctl -w fs.inotify.max_user_instances=1024
+    securityContext:
+      privileged: true

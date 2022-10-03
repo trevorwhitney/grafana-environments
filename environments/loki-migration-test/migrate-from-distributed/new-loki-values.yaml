@@ -1,0 +1,21 @@
+---
+loki:
+  auth_enabled: false
+  storage:
+    bucketNames:
+      chunks: loki-data
+      ruler: loki-rules
+    s3:
+      endpoint: minio.k3d-loki-migration-test.svc.cluster.local:9000
+      secretAccessKey: supersecret
+      accessKeyId: loki
+      s3ForcePathStyle: true
+      insecure: true
+monitoring:
+  serviceMonitor:
+    labels:
+      release: 'prometheus'
+migrate:
+  fromDistributed:
+    enabled: true
+    memberlistService: loki-loki-distributed-memberlist

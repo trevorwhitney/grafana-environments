@@ -1,0 +1,9 @@
+---
+lokiAddress: "loki-loki-distributed-gateway.loki.svc.cluster.local"
+serviceMonitor:
+  enabled: true
+  labels:
+    release: "prometheus"
+extraArgs:
+  - "-labelname=pod"
+  - "-labelvalue=$(POD_NAME)"

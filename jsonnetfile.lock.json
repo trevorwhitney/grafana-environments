@@ -8,7 +8,7 @@
           "subdir": "consul"
         }
       },
-      "version": "c132c4afcf17491718539db4c2d94c0ea4346120",
+      "version": "2c06399b18ea6d31e61cab450c1a6ef9879a08b8",
       "sum": "Po3c1Ic96ngrJCtOazic/7OsLkoILOKZWXWyZWl+od8="
     },
     {
@@ -18,7 +18,7 @@
           "subdir": "enterprise-metrics"
         }
       },
-      "version": "c132c4afcf17491718539db4c2d94c0ea4346120",
+      "version": "2c06399b18ea6d31e61cab450c1a6ef9879a08b8",
       "sum": "hi2ZpHKl7qWXmSZ46sAycjWEQK6oGsoECuDKQT1dA+k="
     },
     {
@@ -28,7 +28,7 @@
           "subdir": "etcd-operator"
         }
       },
-      "version": "c132c4afcf17491718539db4c2d94c0ea4346120",
+      "version": "2c06399b18ea6d31e61cab450c1a6ef9879a08b8",
       "sum": "duHm6wmUju5KHQurOe6dnXoKgl5gTUsfGplgbmAOsHw="
     },
     {
@@ -38,7 +38,7 @@
           "subdir": "grafana"
         }
       },
-      "version": "c132c4afcf17491718539db4c2d94c0ea4346120",
+      "version": "2c06399b18ea6d31e61cab450c1a6ef9879a08b8",
       "sum": "Y5nheroSOIwmE+djEVPq4OvvTxKenzdHhpEwaR3Ebjs="
     },
     {
@@ -48,7 +48,7 @@
           "subdir": "jaeger-agent-mixin"
         }
       },
-      "version": "c132c4afcf17491718539db4c2d94c0ea4346120",
+      "version": "2c06399b18ea6d31e61cab450c1a6ef9879a08b8",
       "sum": "nsukyr2SS8h97I2mxvBazXZp2fxu1i6eg+rKq3/NRwY="
     },
     {
@@ -58,7 +58,7 @@
           "subdir": "ksonnet-util"
         }
       },
-      "version": "c132c4afcf17491718539db4c2d94c0ea4346120",
+      "version": "2c06399b18ea6d31e61cab450c1a6ef9879a08b8",
       "sum": "2++XoPslyz02LRgsxREWxjLgYgiCIqhAtXCyVSvYcoE="
     },
     {
@@ -78,8 +78,8 @@
           "subdir": "memcached"
         }
       },
-      "version": "c132c4afcf17491718539db4c2d94c0ea4346120",
-      "sum": "8hXTN4QOMkpad75LESkdfRD4/Sl81fMqZcD0ZPx2SNc="
+      "version": "2c06399b18ea6d31e61cab450c1a6ef9879a08b8",
+      "sum": "SWywAq4U0MRPMbASU0Ez8O9ArRNeoZzb75sEuReueow="
     },
     {
       "source": {
@@ -88,7 +88,7 @@
           "subdir": "tanka-util"
         }
       },
-      "version": "c132c4afcf17491718539db4c2d94c0ea4346120",
+      "version": "2c06399b18ea6d31e61cab450c1a6ef9879a08b8",
       "sum": "ShSIissXdvCy1izTCDZX6tY7qxCoepE5L+WJ52Hw7ZQ="
     },
     {
@@ -98,8 +98,8 @@
           "subdir": "production/ksonnet"
         }
       },
-      "version": "9e84648f3e176d82780db98e59a34d0e40560d1d",
-      "sum": "xnBxBQDuCxUA9B+hVBEmmLuhL1F+S52zRBbqQAHMaTM="
+      "version": "8868957783b7fb5aa1384d57b4584f19ee256999",
+      "sum": "l6LM8Ln/Jk5s0/vMTAIUduajG1paRZL/4iwO7FzlqsE="
     },
     {
       "source": {
@@ -128,7 +128,7 @@
           "subdir": "1.20"
         }
       },
-      "version": "e22027656445547ff5e757c10a3cb7d8c933a441",
+      "version": "610803705e9ec295ef2e4eeaa6b2f8fc1419e5b1",
       "sum": "67P8R8DnfIL1v+z+KThW2kIATcwn591elT5YiWZ1j/s="
     }
   ],
