@@ -124,6 +124,9 @@ minio + grafana + prometheus + jaeger {
           },
         },
       ],
+      // dashboardsConfigMaps: [
+      //   'foo',
+      // ],
     },
   },
 }

@@ -13,9 +13,11 @@ local helm = tanka.helm.new(std.thisFile) {
     provisioningDir: '/etc/grafana/provisioning',
     lokiUrl: error 'please provide $._config.lokiUrl',
     grafana+: {
+      namespace: $._config.namespace,
       datasources: [],
       dashboardsConfigMaps: [],
-      extraVolumeMounts: []
+      extraVolumeMounts: [],
+      enterpriseLicense: '',
     },
   },
 
@@ -28,7 +30,7 @@ local helm = tanka.helm.new(std.thisFile) {
   },
 
   grafana: helm.template('grafana', '../../charts/grafana', {
-    namespace: $._config.namespace,
+    namespace: $._config.grafana.namespace,
     values: {
       image: $._images.grafana,
       testFramework: {
@@ -41,6 +43,7 @@ local helm = tanka.helm.new(std.thisFile) {
         GF_AUTH_ANONYMOUS_ENABLED: true,
         GF_AUTH_ANONYMOUS_ORG_ROLE: 'Admin',
         GF_FEATURE_TOGGLES_ENABLE: 'ngalert',
+        GF_USERS_DEFAULT_THEME: 'light',
         JAEGER_AGENT_PORT: 6831,
         JAEGER_AGENT_HOST: $._config.jaegerAgentName,
       },
@@ -59,7 +62,11 @@ local helm = tanka.helm.new(std.thisFile) {
         paths: {
           provisioning: $._config.provisioningDir,
         },
-      },
+      } + if std.length($._config.grafana.enterpriseLicense) > 0 then {
+        enterprise: {
+          license_text: $._config.grafana.enterpriseLicense,
+        },
+      } else {},
     } + if std.length($._config.grafana.dashboardsConfigMaps) > 0 then {
       dashboardProviders: {
         'loki.yaml': {

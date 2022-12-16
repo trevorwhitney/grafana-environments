@@ -1,8 +1,8 @@
 .PHONY: pbrennan-gel gel-distributed gel-ssd loki-distributed loki-simple-scalable down secrets
 .PHONY: add-repos update-repos create-registry prepare-gel prepare-loki build-latest-gel-image build-latest-loki-image
 
-GEL_IMAGE_TAG := $(shell pushd ../../enterprise-logs/tools/ > /dev/null && ./image-tag)
-LOKI_IMAGE_TAG := $(shell pushd ../../loki/tools/ > /dev/null && ./image-tag)
+GEL_IMAGE_TAG := $(shell pushd ../enterprise-logs/tools/ > /dev/null && ./image-tag)
+LOKI_IMAGE_TAG := $(shell pushd ../loki/tools/ > /dev/null && ./image-tag)
 REGISTRY_PORT ?= $(shell k3d registry list -o json | jq -r '.[] | select(.name == "k3d-grafana") | .portMappings."5000/tcp" | .[0].HostPort')
 
 gel-distributed: update-repos secrets prepare-gel
@@ -26,6 +26,9 @@ loki-migration-test: update-repos
 loki-origin-hackathon: update-repos
 	$(CURDIR)/scripts/create_cluster.sh $(CURDIR)/environments/loki-origin-hackathon $(REGISTRY_PORT)
 
+empty-cluster: update-repos
+	$(CURDIR)/scripts/create_cluster.sh $(CURDIR)/environments/empty-cluster $(REGISTRY_PORT)
+
 down:
 	k3d cluster delete gel-distributed
 	k3d cluster delete enterprise-logs-simple
@@ -34,6 +37,7 @@ down:
 	k3d cluster delete loki-single-binary
 	k3d cluster delete loki-migration-test
 	k3d cluster delete loki-origin-hackathon
+	k3d cluster delete empty-cluster
 
 add-repos:
 	helm repo add prometheus-community https://prometheus-community.github.io/helm-charts

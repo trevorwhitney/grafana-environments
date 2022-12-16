@@ -1,0 +1,81 @@
+---
+testFramework:
+  enabled: false
+serviceMonitor:
+  enabled: true
+
+image:
+  repository: 'grafana/grafana-enterprise'
+  tag: '8.2.5'
+  pullPolicy: 'IfNotPresent'
+
+adminUser: admin
+adminPassword: admin
+
+env:
+  GF_AUTH_ANONYMOUS_ENABLED: true
+  GF_AUTH_ANONYMOUS_ORG_ROLE: "Admin"
+  GF_FEATURE_TOGGLES_ENABLE: "ngalert"
+  GF_USERS_DEFAULT_THEME: "light"
+  GF_INSTALL_PLUGINS: "grafana-enterprise-logs-app"
+  JAEGER_AGENT_PORT: 6831
+  JAEGER_AGENT_HOST: jaeger-agent.k3d-empty-cluster.svc.cluster.local
+
+envValueFrom:
+  GF_ENTERPRISE_LICENSE_TEXT:
+    secretKeyRef:
+      name: grafana-license
+      key: license.jwt
+
+datasources:
+  "datasources.yaml":
+    apiVersion: 1
+    datasources:
+      - name: "Prometheus"
+        type: "prometheus"
+        access: "proxy"
+        url: "http://prometheus-kube-prometheus-prometheus.k3d-empty-cluster.svc.cluster.local:9090"
+      - name: "Jaeger"
+        type: "jaeger"
+        access: "proxy"
+        url: "http://jaeger-query.k3d-empty-cluster.svc.cluster.local"
+        uid: "jaeger_uid"
+      - name: "Loki"
+        type: "loki"
+        access: "proxy"
+        url: "http://enterprise-logs-gateway.loki.svc.cluster.local"
+        basicAuth: true
+        basicAuthUser: 'self-monitoring'
+        jsonData:
+          derivedFields:
+            - datasourceUid: "jaeger_uid"
+              matcherRegex: "traceID=(\\w+)"
+              name: "TraceID"
+              url: "$${__value.raw}"
+        secureJsonData:
+          basicAuthPassword: Y2FuYXJ5OkQ+KjZ2IUs4M34pOTM2Mz00JiUtSi05NA==
+
+"grafana.ini":
+  "tracing.jaeger":
+    always_included_tag: "app=grafana"
+    sampler_type: "const"
+    sampler_param: 1
+
+  paths:
+    provisioning: "/etc/grafana/provisioning"
+
+dashboardProviders:
+  "loki.yaml":
+    apiVersion: 1
+    providers:
+      - name: "enterprise-logs-1"
+        editable: true
+        options:
+          path: "/var/lib/grafana/dashboards/enterprise-logs-1"
+      - name: "enterprise-logs-2"
+        editable: true
+        options:
+          path: "/var/lib/grafana/dashboards/enterprise-logs-2"
+dashboardsConfigMaps:
+  enterprise-logs-1: "enterprise-logs-dashboards-1"
+  enterprise-logs-2: "enterprise-logs-dashboards-2"

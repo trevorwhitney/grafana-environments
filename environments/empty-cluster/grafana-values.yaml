@@ -1,0 +1,80 @@
+---
+testFramework:
+  enabled: false
+serviceMonitor:
+  enabled: true
+
+image:
+  repository: 'grafana/grafana-enterprise'
+  tag: '8.2.5'
+  pullPolicy: 'IfNotPresent'
+
+adminUser: admin
+adminPassword: admin
+
+env:
+  GF_AUTH_ANONYMOUS_ENABLED: true
+  GF_AUTH_ANONYMOUS_ORG_ROLE: "Admin"
+  GF_FEATURE_TOGGLES_ENABLE: "ngalert"
+  GF_USERS_DEFAULT_THEME: "light"
+  GF_INSTALL_PLUGINS: "grafana-enterprise-logs-app"
+  JAEGER_AGENT_PORT: 6831
+  JAEGER_AGENT_HOST: jaeger-agent.k3d-empty-cluster.svc.cluster.local
+
+envValueFrom:
+  GF_ENTERPRISE_LICENSE_TEXT:
+    secretKeyRef:
+      name: grafana-license
+      key: license.jwt
+
+datasources:
+  "datasources.yaml":
+    apiVersion: 1
+    datasources:
+      - name: "prometheus"
+        type: "prometheus"
+        access: "proxy"
+        url: "http://prometheus-kube-prometheus-prometheus.k3d-empty-cluster.svc.cluster.local:9090"
+      - name: "jaeger"
+        type: "jaeger"
+        access: "proxy"
+        url: "http://jaeger-query.k3d-empty-cluster.svc.cluster.local"
+        uid: "jaeger_uid"
+      - name: "loki"
+        type: "loki"
+        access: "proxy"
+        url: "http://loki-gateway.loki.svc.cluster.local"
+        jsonData:
+          httpHeaderName1: "X-Scope-OrgID"
+          derivedFields:
+            - datasourceUid: "jaeger_uid"
+              matcherRegex: "traceID=(\\w+)"
+              name: "TraceID"
+              url: "$${__value.raw}"
+        secureJsonData:
+          httpHeaderValue1: "self-monitoring"
+
+"grafana.ini":
+  "tracing.jaeger":
+    always_included_tag: "app=grafana"
+    sampler_type: "const"
+    sampler_param: 1
+
+  paths:
+    provisioning: "/etc/grafana/provisioning"
+
+dashboardProviders:
+  "loki.yaml":
+    apiVersion: 1
+    providers:
+      - name: "loki-1"
+        editable: true
+        options:
+          path: "/var/lib/grafana/dashboards/loki-1"
+      - name: "loki-2"
+        editable: true
+        options:
+          path: "/var/lib/grafana/dashboards/loki-2"
+dashboardsConfigMaps:
+  loki-1: "loki-dashboards-1"
+  loki-2: "loki-dashboards-2"

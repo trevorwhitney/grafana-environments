@@ -1,0 +1,31 @@
+---
+enterprise:
+  enabled: true
+  useExternalLicense: true
+  externalLicenseName: gel-license
+  cluster_name: 'enterprise-logs-test-fixture'
+loki:
+  storage:
+    bucketNames:
+      chunks: loki-data
+      ruler: loki-rules
+      admin: loki-admin
+    s3:
+      endpoint: minio.k3d-empty-cluster.svc.cluster.local:9000
+      secretAccessKey: supersecret
+      accessKeyId: loki
+      s3ForcePathStyle: true
+      insecure: true
+monitoring:
+  serviceMonitor:
+    labels:
+      release: 'prometheus'
+  rules:
+    labels:
+      release: 'prometheus'
+  dashboards:
+    namespace: 'grafana'
+test:
+  prometheusAddress: http://prometheus-kube-prometheus-prometheus.k3d-empty-cluster.svc.cluster.local:9090
+  retryDelay: '5s'
+  retries: 3

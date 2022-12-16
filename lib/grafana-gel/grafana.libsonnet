@@ -109,5 +109,4 @@ local helm = tanka.helm.new(std.thisFile) {
       k.apps.v1.deployment.mapContainers(addEnvVars) +
       k.util.configVolumeMount($.pluginsConfigMap.metadata.name, $._config.provisioningDir + '/plugins'),
   },
-
 }
